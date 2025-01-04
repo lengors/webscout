@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-issue-config.json
+---
+blank_issues_enabled: false
+contact_links:
+  - name: General
+    url: https://github.com/lengors/webscout/discussions/new?category=general
+    about: Chat about anything and everything here
+  - name: Ideas
+    url: https://github.com/lengors/webscout/discussions/new?category=ideas
+    about: Share ideas for new features
+  - name: Questions
+    url: https://github.com/lengors/webscout/discussions/new?category=q-a
+    about: Ask the community for help

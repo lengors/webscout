@@ -1,0 +1,60 @@
+---
+name: Build and publish documentation
+on:
+    push:
+        tags:
+            - '*.*.*'
+jobs:
+    build-publish-documentation:
+        name: Build and publish documentation
+        runs-on: ubuntu-latest
+        environment: publisher
+        steps:
+            - name: Create GitHub app token
+              uses: actions/create-github-app-token@v1
+              id: app-token
+              with:
+                  app-id: ${{ secrets.GH_APP_ID }}
+                  private-key: ${{ secrets.GH_PRIVATE_KEY }}
+            - name: Checkout repository on source branch
+              uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
+                  path: source
+                  ref: ${{ github.ref }}
+            - name: Checkout repository on documentation branch
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ steps.app-token.outputs.token }}
+                  path: pages
+                  ref: gh-pages
+            - name: Setup JDK 21
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "21"
+                  distribution: temurin
+                  cache: gradle
+            - name: Build temporary directory
+              id: build-temp-dir
+              run: echo "dokka=$(mktemp -d -t --suffix=-dokka)" >> "$GITHUB_OUTPUT"
+            - name: Build documentation
+              working-directory: source
+              run: ./gradlew dokkaGenerate -PdokkaOutputDir=../pages/docs -PdokkaVersionsDir=${{ steps.build-temp-dir.outputs.dokka }}
+            - name: Import GPG key
+              uses: crazy-max/ghaction-import-gpg@v6
+              id: import-gpg
+              with:
+                  gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.GPG_PASSPHRASE }}
+                  git_user_signingkey: true
+                  git_commit_gpgsign: true
+                  workdir: pages
+            - name: Commit documentation
+              run: |
+                  ref=${{ github.ref }}
+                  git config user.name "${{ steps.import-gpg.outputs.name }}"
+                  git config user.email "${{ steps.import-gpg.outputs.email }}"
+                  git add docs
+                  git commit -m "📝 Update documentation for version ${ref/refs\/tags\//}"
+                  git push
+              working-directory: pages

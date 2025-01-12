@@ -8,9 +8,11 @@
 pluginManagement {
     val ktlintPluginVersion: String by settings
     val kotlinVersion: String by settings
+    val dokkaVersion: String by settings
 
     plugins {
         kotlin("jvm") version kotlinVersion
+        id("org.jetbrains.dokka") version dokkaVersion
         id("org.jlleitschuh.gradle.ktlint") version ktlintPluginVersion
     }
 }

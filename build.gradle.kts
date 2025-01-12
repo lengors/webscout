@@ -72,6 +72,26 @@ sonar {
 }
 
 tasks {
+    register("setVersion") {
+        doLast {
+            val newVersion = findProperty("newVersion") ?: throw IllegalArgumentException("newVersion not set")
+            val propertiesFile = file("gradle.properties")
+            val versionRegex = Regex("^\\s*version\\s*=\\s*(.*?)\\s*$")
+            propertiesFile
+                .readLines()
+                .joinToString(System.lineSeparator()) { line ->
+                    versionRegex.replace(line) {
+                        val matchedLine =
+                            it.groups[0] ?: throw IllegalStateException("$line does not match $versionRegex")
+                        val matchedVersion =
+                            it.groups[1] ?: throw IllegalStateException("$line does not match $versionRegex")
+                        val (start, end) = matchedVersion.range.start to matchedVersion.range.endInclusive
+                        "${matchedLine.value.substring(0, start)}$newVersion${matchedLine.value.substring(end + 1)}"
+                    }
+                }.also(propertiesFile::writeText)
+        }
+    }
+
     withType<DokkaGeneratePublicationTask> {
         val docsDir =
             project

@@ -1,0 +1,46 @@
+---
+name: Static code analysis
+on:
+    push:
+        branches:
+            - main
+            - beta
+            - alpha
+            - dev
+    pull_request:
+        branches:
+            - main
+            - beta
+            - alpha
+            - dev
+jobs:
+    code-analysis:
+        name: Static code analysis
+        runs-on: ubuntu-latest
+        environment: code-analysis
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Setup JDK 21
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "21"
+                  distribution: temurin
+                  cache: gradle
+            - name: Cache SonarQube packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.sonar/cache
+                  key: ${{ runner.os }}-sonar
+                  restore-keys: ${{ runner.os }}-sonar
+            - name: Cache Gradle packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.gradle/caches
+                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+                  restore-keys: ${{ runner.os }}-gradle
+            - name: Build and analyze
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+              run: ./gradlew koverXmlReport build sonar --info

@@ -7,12 +7,14 @@
 
 pluginManagement {
     val ktlintPluginVersion: String by settings
+    val sonarqubeVersion: String by settings
     val kotlinVersion: String by settings
     val dokkaVersion: String by settings
     val koverVersion: String by settings
 
     plugins {
         kotlin("jvm") version kotlinVersion
+        id("org.sonarqube") version sonarqubeVersion
         id("org.jetbrains.dokka") version dokkaVersion
         id("org.jetbrains.kotlinx.kover") version koverVersion
         id("org.jlleitschuh.gradle.ktlint") version ktlintPluginVersion

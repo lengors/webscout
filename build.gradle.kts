@@ -5,6 +5,7 @@ import java.nio.file.Paths
 
 plugins {
     kotlin("jvm")
+    id("org.sonarqube")
     id("org.jetbrains.dokka")
     id("org.jetbrains.kotlinx.kover")
     id("org.jlleitschuh.gradle.ktlint")
@@ -59,6 +60,15 @@ kotlin.compilerOptions {
 
 ktlint {
     version = ktlintVersion
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "lengors_${project.name}")
+        property("sonar.organization", "lengors-github")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/kover/report.xml")
+    }
 }
 
 tasks {

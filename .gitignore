@@ -1,10 +1,3 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
 # Compiled class file
 *.class
 
@@ -61,5 +54,16 @@ out/
 ### VS Code ###
 .vscode/
 
+### Fleet ###
+.fleet/
+
 ### Kotlin ###
 .kotlin
+
+# Gradle
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/

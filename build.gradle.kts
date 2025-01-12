@@ -6,6 +6,7 @@ import java.nio.file.Paths
 plugins {
     kotlin("jvm")
     id("org.jetbrains.dokka")
+    id("org.jetbrains.kotlinx.kover")
     id("org.jlleitschuh.gradle.ktlint")
 }
 

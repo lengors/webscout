@@ -5,10 +5,13 @@ import java.nio.file.Paths
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.spring")
     id("org.sonarqube")
     id("org.jetbrains.dokka")
+    id("org.springframework.boot")
     id("org.jetbrains.kotlinx.kover")
     id("org.jlleitschuh.gradle.ktlint")
+    id("io.spring.dependency-management")
 }
 
 buildscript {

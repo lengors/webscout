@@ -5,10 +5,13 @@ import java.nio.file.Paths
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.spring")
     id("org.sonarqube")
     id("org.jetbrains.dokka")
+    id("org.springframework.boot")
     id("org.jetbrains.kotlinx.kover")
     id("org.jlleitschuh.gradle.ktlint")
+    id("io.spring.dependency-management")
 }
 
 buildscript {
@@ -51,7 +54,11 @@ repositories {
 
 dependencies {
     dokkaHtmlPlugin("org.jetbrains.dokka:versioning-plugin:$dokkaVersioningPluginVersion")
-    testImplementation(kotlin("test"))
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin.compilerOptions {

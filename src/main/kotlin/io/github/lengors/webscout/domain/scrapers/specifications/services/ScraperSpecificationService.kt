@@ -1,9 +1,14 @@
 package io.github.lengors.webscout.domain.scrapers.specifications.services
 
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecification
+import io.github.lengors.webscout.domain.events.services.EventPublisher
 import io.github.lengors.webscout.domain.persistence.exceptions.EntityConflictException
 import io.github.lengors.webscout.domain.persistence.exceptions.EntityNotFoundException
 import io.github.lengors.webscout.domain.persistence.services.UniqueKeyPersistenceService
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityBatchDeletedEvent
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityCreatedEvent
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityDeletedEvent
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityUpdatedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.models.ScraperSpecificationEntity
 import io.github.lengors.webscout.domain.scrapers.specifications.repositories.ScraperSpecificationRepository
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ScraperSpecificationService(
+    private val eventPublisher: EventPublisher,
     private val scraperSpecificationRepository: ScraperSpecificationRepository,
 ) : UniqueKeyPersistenceService<ScraperSpecification> {
     override suspend fun delete(key: String): ScraperSpecification =
@@ -24,6 +30,7 @@ class ScraperSpecificationService(
             .findByName(key)
             ?.also { scraperSpecificationRepository.delete(it) }
             ?.data
+            ?.also { eventPublisher.publishEventAsync(ScraperSpecificationEntityDeletedEvent(it)) }
             ?: throw EntityNotFoundException(ScraperSpecificationEntity::class, key)
 
     @Transactional
@@ -34,6 +41,7 @@ class ScraperSpecificationService(
                 .toList()
                 .also { scraperSpecificationRepository.deleteAll(it) }
                 .map { it.data }
+                .also { eventPublisher.publishEventAsync(ScraperSpecificationEntityBatchDeletedEvent(it)) }
                 .asFlow()
                 .let { emitAll(it) }
         }
@@ -65,6 +73,7 @@ class ScraperSpecificationService(
             ?: scraperSpecificationRepository
                 .save(ScraperSpecificationEntity(data))
                 .data
+                .also { eventPublisher.publishEventAsync(ScraperSpecificationEntityCreatedEvent(it)) }
 
     @Transactional
     override suspend fun update(data: ScraperSpecification): ScraperSpecification =
@@ -72,5 +81,6 @@ class ScraperSpecificationService(
             .findByName(data.name)
             ?.let { scraperSpecificationRepository.save(it.clone(data = data)) }
             ?.data
+            ?.also { eventPublisher.publishEventAsync(ScraperSpecificationEntityUpdatedEvent(it)) }
             ?: throw EntityNotFoundException(ScraperSpecificationEntity::class, data.name)
 }

@@ -26,6 +26,7 @@ group = "io.github.lengors"
 val dokkaVersioningPluginVersion: String by properties
 val jacksonBuildScriptVersion: String by properties
 val protoscoutVersion: String by properties
+val hazelcastVersion: String by properties
 val ktlintVersion: String by properties
 val javaVersion: String by properties
 
@@ -65,6 +66,7 @@ dependencies {
     implementation("org.liquibase:liquibase-core")
     implementation("org.springframework:spring-jdbc")
     implementation("io.github.lengors:protoscout:$protoscoutVersion")
+    implementation("com.hazelcast:hazelcast-spring:$hazelcastVersion")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")

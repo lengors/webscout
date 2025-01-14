@@ -1,0 +1,34 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/liquibase-3.2.json
+databaseChangeLog:
+    - changeSet:
+          id: 01.add-scraper
+          author: lengors
+          changes:
+              - createSequence:
+                    sequenceName: hibernate_sequence
+                    incrementBy: 1
+              - createSequence:
+                    sequenceName: scraper_specifications_sequence
+                    incrementBy: 50
+              - createTable:
+                    tableName: scraper_specifications
+                    columns:
+                        - column:
+                              name: id
+                              type: bigint
+                              defaultValueComputed: nextval('scraper_specifications_sequence')
+                              constraints:
+                                  nullable: false
+                                  primaryKey: true
+                        - column:
+                              name: name
+                              type: varchar
+                              constraints:
+                                  nullable: false
+                                  unique: true
+                        - column:
+                              name: data
+                              type: varbinary
+                              constraints:
+                                  nullable: false

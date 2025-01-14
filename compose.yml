@@ -1,0 +1,10 @@
+---
+services:
+    postgres:
+        image: 'postgres:17.0'
+        environment:
+            - 'POSTGRES_DB=webscout'
+            - 'POSTGRES_PASSWORD=secret'
+            - 'POSTGRES_USER=postgres'
+        ports:
+            - '5432'

@@ -5,6 +5,17 @@ server:
 spring:
     application:
         name: webscout
+    webflux:
+        base-path: /api
     threads:
         virtual:
             enabled: true
+    liquibase:
+        change-log: classpath:/db/db.changelog-master.yml
+        url: jdbc:${DATABASE_URL:postgresql://localhost:5432/webscout}
+        user: ${DATABASE_USERNAME:postgres}
+        password: ${DATABASE_PASSWORD:}
+    r2dbc:
+        url: r2dbc:${DATABASE_URL:postgresql://localhost:5432/webscout}
+        username: ${DATABASE_USERNAME:postgres}
+        password: ${DATABASE_PASSWORD:}

@@ -20,8 +20,8 @@ data class ScraperSpecificationEntity
         val data: ScraperSpecification,
     ) {
         init {
-            if (name != data.name) {
-                throw IllegalArgumentException("Specification name (${data.name}) and entity name ($name) differ")
+            require(name == data.name) {
+                "Specification name (${data.name}) and entity name ($name) differ"
             }
         }
 

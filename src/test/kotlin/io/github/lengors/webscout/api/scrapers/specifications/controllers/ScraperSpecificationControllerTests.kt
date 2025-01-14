@@ -1,7 +1,13 @@
 package io.github.lengors.webscout.api.scrapers.specifications.controllers
 
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecification
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityBatchDeletedEvent
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityCreatedEvent
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityDeletedEvent
+import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityUpdatedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.services.ScraperSpecificationService
+import io.github.lengors.webscout.testing.events.configurations.TestingEventListenerConfiguration
+import io.github.lengors.webscout.testing.events.services.TestingEventListener
 import io.github.lengors.webscout.testing.postgres.configurations.PostgresTestContainerConfiguration
 import io.github.lengors.webscout.testing.utilities.TestingSpecifications
 import kotlinx.coroutines.flow.collect
@@ -19,12 +25,15 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
 
-@Import(PostgresTestContainerConfiguration::class)
+@Import(PostgresTestContainerConfiguration::class, TestingEventListenerConfiguration::class)
 @SpringBootTest
 @AutoConfigureWebTestClient
 class ScraperSpecificationControllerTests {
     @Autowired
     private lateinit var webTestClient: WebTestClient
+
+    @Autowired
+    private lateinit var testingEventListener: TestingEventListener
 
     @Autowired
     private lateinit var scraperSpecificationService: ScraperSpecificationService
@@ -34,12 +43,14 @@ class ScraperSpecificationControllerTests {
         TestingSpecifications.buildTestSpecification(locale = "'en-GB'")
 
     @AfterEach
-    fun cleanup() =
+    fun cleanup() {
         runBlocking {
             scraperSpecificationService
                 .deleteAll()
                 .collect()
         }
+        testingEventListener.flushEvents()
+    }
 
     @Test
     fun `should correctly put, find and delete specification`() {
@@ -72,6 +83,14 @@ class ScraperSpecificationControllerTests {
             .hasSize(1)
             .contains(testPatchSpecification)
             .doesNotContain(testSpecification)
+            .consumeWith<WebTestClient.ListBodySpec<ScraperSpecification>> {
+                it.responseBody?.let { specifications ->
+                    Assertions.assertEquals(
+                        listOf(ScraperSpecificationEntityBatchDeletedEvent(specifications)),
+                        testingEventListener.flushEvents(),
+                    )
+                }
+            }
 
         webTestClient.assertNone()
     }
@@ -152,6 +171,16 @@ class ScraperSpecificationControllerTests {
         this
             .delete()
             .submit(name)
+            .consumeWith {
+                if (it.status.is2xxSuccessful) {
+                    it.responseBody?.let { specification ->
+                        Assertions.assertEquals(
+                            listOf(ScraperSpecificationEntityDeletedEvent(specification)),
+                            testingEventListener.flushEvents(),
+                        )
+                    }
+                }
+            }
 
     private fun WebTestClient.get(name: String): WebTestClient.BodySpec<ScraperSpecification, *> =
         this
@@ -162,11 +191,31 @@ class ScraperSpecificationControllerTests {
         this
             .patch()
             .submit(scraperSpecification)
+            .consumeWith {
+                if (it.status.is2xxSuccessful) {
+                    it.responseBody?.let { specification ->
+                        Assertions.assertEquals(
+                            listOf(ScraperSpecificationEntityUpdatedEvent(specification)),
+                            testingEventListener.flushEvents(),
+                        )
+                    }
+                }
+            }
 
     private fun WebTestClient.put(scraperSpecification: ScraperSpecification): WebTestClient.BodySpec<ScraperSpecification, *> =
         this
             .put()
             .submit(scraperSpecification)
+            .consumeWith {
+                if (it.status.is2xxSuccessful) {
+                    it.responseBody?.let { specification ->
+                        Assertions.assertEquals(
+                            listOf(ScraperSpecificationEntityCreatedEvent(specification)),
+                            testingEventListener.flushEvents(),
+                        )
+                    }
+                }
+            }
 
     private fun WebTestClient.RequestBodyUriSpec.submit(
         scraperSpecification: ScraperSpecification,

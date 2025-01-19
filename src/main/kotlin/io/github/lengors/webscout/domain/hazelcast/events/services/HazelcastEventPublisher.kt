@@ -5,12 +5,13 @@ import com.hazelcast.topic.ITopic
 import io.github.lengors.webscout.domain.events.models.Event
 import io.github.lengors.webscout.domain.events.models.EventListener
 import io.github.lengors.webscout.domain.events.services.EventPublisher
-import io.github.lengors.webscout.domain.hazelcast.events.models.HazelcastEventListener
-import kotlinx.coroutines.future.asDeferred
+import io.github.lengors.webscout.domain.hazelcast.events.models.HazelcastEventTopic
+import kotlinx.coroutines.future.await
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.support.BeanDefinitionValidationException
 import org.springframework.core.ResolvableType
 import org.springframework.util.ReflectionUtils
+import java.util.UUID
 
 class HazelcastEventPublisher(
     hazelcastInstance: HazelcastInstance,
@@ -20,31 +21,43 @@ class HazelcastEventPublisher(
         private val logger = LoggerFactory.getLogger(HazelcastEventPublisher::class.java)
     }
 
-    private val hazelcastEventListeners: Collection<HazelcastEventListener> =
-        eventListeners.map { eventListener ->
-            ReflectionUtils
-                .getAllDeclaredMethods(eventListener.javaClass)
-                .firstOrNull { it.name == "onEvent" }
-                ?.let { ResolvableType.forMethodParameter(it, 0) }
-                ?.also {
-                    if (it.hasGenerics()) throw BeanDefinitionValidationException("Event type with generics is not supported: ${it.type}")
-                }?.let { it to hazelcastInstance.getTopic<Event>(it.type.typeName) }
-                ?.let {
-                    HazelcastEventListener(
-                        it.second.addMessageListener { event ->
-                            @Suppress("UNCHECKED_CAST")
-                            eventListener as EventListener<Event>
-                            eventListener.onEvent(event.messageObject)
-                        },
-                        it.first,
-                        it.second,
-                    )
+    private val hazelcastEventListeners: Map<HazelcastEventTopic, List<UUID>> =
+        eventListeners
+            .groupBy { eventListener ->
+                ReflectionUtils
+                    .getAllDeclaredMethods(eventListener.javaClass)
+                    .filter { it.name == "onEvent" }
+                    .map { ResolvableType.forMethodParameter(it, 0) }
+                    .sortedWith { left, right ->
+                        val leftAssignableFromRight = left.isAssignableFrom(right)
+                        val rightAssignableFromLeft = right.isAssignableFrom(left)
+                        when {
+                            leftAssignableFromRight && rightAssignableFromLeft -> 0
+                            leftAssignableFromRight -> 1
+                            rightAssignableFromLeft -> -1
+                            else -> 0
+                        }
+                    }.lastOrNull()
+                    ?.also {
+                        if (it.hasGenerics()) {
+                            throw BeanDefinitionValidationException(
+                                "Event type with generics is not supported: ${it.type}",
+                            )
+                        }
+                    }?.let { HazelcastEventTopic(it.type, hazelcastInstance) }
+                    ?: throw BeanDefinitionValidationException("Missing 'onEvent' method for: ${eventListener.javaClass}")
+            }.mapValues {
+                it.value.map { eventListener ->
+                    it.key.topic.addMessageListener { event ->
+                        @Suppress("UNCHECKED_CAST")
+                        eventListener as EventListener<Event>
+                        eventListener.onEvent(event.messageObject)
+                    }
                 }
-                ?: throw BeanDefinitionValidationException("Missing 'onEvent' method for: ${eventListener.javaClass}")
-        }
+            }
 
     init {
-        logger.info("Registered ${hazelcastEventListeners.size} event listeners")
+        logger.info("Registered ${hazelcastEventListeners.size} topics")
     }
 
     override fun publishEvent(event: Event) = getTopics(event).forEach { it.publish(event) }
@@ -52,15 +65,14 @@ class HazelcastEventPublisher(
     override suspend fun publishEventAsync(event: Event) =
         getTopics(event)
             .map { it.publishAsync(event) }
-            .map { it.asDeferred() }
             .forEach { it.await() }
 
-    private fun getTopics(event: Event): Collection<ITopic<in Event>> =
+    private fun getTopics(event: Event): Collection<ITopic<Event>> =
         ResolvableType
             .forInstance(event)
             .let { type ->
                 hazelcastEventListeners
-                    .filter { it.eventType.isAssignableFrom(type) }
-                    .map { it.eventTopic }
+                    .filterKeys { it.resolvableType.isAssignableFrom(type) }
+                    .map { it.key.topic }
             }
 }

@@ -19,3 +19,15 @@ spring:
         url: r2dbc:${DATABASE_URL:postgresql://localhost:5432/webscout}
         username: ${DATABASE_USERNAME:postgres}
         password: ${DATABASE_PASSWORD:}
+    cache:
+        caffeine:
+            spec: expireAfterAccess=1h
+        cache-names: ScraperContexts
+        type: caffeine
+    hazelcast:
+        config: ${HAZELCAST_CONFIG:classpath:/hazelcast.yml}
+
+
+duckling:
+    client:
+        url: ${DUCKLING_CLIENT_URL:http://localhost:8000}

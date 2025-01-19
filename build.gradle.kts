@@ -25,9 +25,15 @@ group = "io.github.lengors"
 
 val dokkaVersioningPluginVersion: String by properties
 val jacksonBuildScriptVersion: String by properties
+val commonsValidatorVersion: String by properties
+val mockWebServerVersion: String by properties
 val protoscoutVersion: String by properties
 val hazelcastVersion: String by properties
+val caffeineVersion: String by properties
 val ktlintVersion: String by properties
+val monetaVersion: String by properties
+val jsoupVersion: String by properties
+val jexlVersion: String by properties
 val javaVersion: String by properties
 
 java.toolchain {
@@ -56,6 +62,7 @@ repositories {
 
 dependencies {
     dokkaHtmlPlugin("org.jetbrains.dokka:versioning-plugin:$dokkaVersioningPluginVersion")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -66,7 +73,12 @@ dependencies {
     implementation("org.liquibase:liquibase-core")
     implementation("org.springframework:spring-jdbc")
     implementation("io.github.lengors:protoscout:$protoscoutVersion")
+    implementation("com.github.ben-manes.caffeine:caffeine:$caffeineVersion")
     implementation("com.hazelcast:hazelcast-spring:$hazelcastVersion")
+    implementation("org.apache.commons:commons-jexl3:$jexlVersion")
+    implementation("commons-validator:commons-validator:$commonsValidatorVersion")
+    implementation("org.jsoup:jsoup:$jsoupVersion")
+    implementation("org.javamoney:moneta:$monetaVersion")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")
@@ -74,6 +86,7 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("com.squareup.okhttp3:mockwebserver:$mockWebServerVersion")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.testcontainers:junit-jupiter")

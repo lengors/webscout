@@ -30,6 +30,7 @@ val mockWebServerVersion: String by properties
 val protoscoutVersion: String by properties
 val hazelcastVersion: String by properties
 val caffeineVersion: String by properties
+val openapiVersion: String by properties
 val ktlintVersion: String by properties
 val monetaVersion: String by properties
 val jsoupVersion: String by properties
@@ -83,6 +84,7 @@ dependencies {
     implementation("commons-validator:commons-validator:$commonsValidatorVersion")
     implementation("org.jsoup:jsoup:$jsoupVersion")
     implementation("org.javamoney:moneta:$monetaVersion")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:$openapiVersion")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")

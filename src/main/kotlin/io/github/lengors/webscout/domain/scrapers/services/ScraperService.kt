@@ -33,12 +33,15 @@ import io.github.lengors.webscout.domain.utilities.asMultiValueMap
 import io.github.lengors.webscout.domain.utilities.mapEachValue
 import io.github.lengors.webscout.domain.utilities.runCatching
 import io.github.lengors.webscout.integrations.duckling.client.DucklingClient
+import io.micrometer.core.instrument.kotlin.asContextElement
+import io.micrometer.observation.ObservationRegistry
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.apache.commons.jexl3.JexlEngine
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
@@ -54,6 +57,7 @@ class ScraperService(
     private val objectMapper: ObjectMapper,
     private val ducklingClient: DucklingClient,
     private val sslMaterialLoader: SslMaterialLoader,
+    private val observationRegistry: ObservationRegistry,
     private val httpStatefulClientBuilder: HttpStatefulClientBuilder,
     @Lazy private val self: ScraperService? = null,
 ) : EventListener<ScraperSpecificationPersistenceEvent> {
@@ -92,9 +96,11 @@ class ScraperService(
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Iterable<ScraperTask>) = scrap(scraperTasks.asFlow())
 
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Flow<ScraperTask>) =
-        coroutineScope {
-            scraperTasks.collect {
-                launch { scrap(it) }
+        withContext(observationRegistry.asContextElement()) {
+            coroutineScope {
+                scraperTasks.collect {
+                    launch { scrap(it) }
+                }
             }
         }
 
@@ -126,161 +132,165 @@ class ScraperService(
     }
 
     private suspend fun SendChannel<ScraperResponse>.scrap(executionContext: ScraperExecutionContext): Unit =
-        coroutineScope {
-            val context = executionContext.context
-            val handler =
-                runCatching(logger, context.handlerExceptionHandler) {
-                    with(executionContext) {
-                        context.definition.handlers.firstOrNull { handler ->
-                            handler.matches?.takeUnless { it.compute(Boolean::class).valueOrNull == true } == null &&
-                                handler.requiresGates
-                                    .compute(String::class)
-                                    .mapNotNull { it.valueOrNull }
-                                    .let(gates::containsAll)
-                        }
-                    } ?: throw ScraperHandlerNotFoundException(context.definition.name)
-                } ?: return@coroutineScope
-
-            logger.info("Scraper handler: (name={})", handler.name)
-
-            when (handler.action) {
-                is ScraperDefinitionFlatAction ->
-                    runCatching(logger, context.computeFlatExpressionExceptionHandler) {
+        withContext(observationRegistry.asContextElement()) {
+            coroutineScope {
+                val context = executionContext.context
+                val handler =
+                    runCatching(logger, context.handlerExceptionHandler) {
                         with(executionContext) {
-                            handler.action.flattens
-                                .compute(Iterable::class)
-                                .valueOrNull
-                        }
-                    }?.let { actions ->
-                        actions.forEach {
-                            launch {
-                                scrap(
-                                    executionContext.branch(
-                                        visitedHandlerName = handler.name,
-                                        openGates = handler.opensGates,
-                                        closeGates = handler.closesGates,
-                                        valueOrNull = it,
-                                    ),
-                                )
+                            context.definition.handlers.firstOrNull { handler ->
+                                handler.matches?.takeUnless { it.compute(Boolean::class).valueOrNull == true } == null &&
+                                    handler.requiresGates
+                                        .compute(String::class)
+                                        .mapNotNull { it.valueOrNull }
+                                        .let(gates::containsAll)
+                            }
+                        } ?: throw ScraperHandlerNotFoundException(context.definition.name)
+                    } ?: return@coroutineScope
+
+                logger.info("Scraper handler: (name={})", handler.name)
+
+                when (handler.action) {
+                    is ScraperDefinitionFlatAction ->
+                        runCatching(logger, context.computeFlatExpressionExceptionHandler) {
+                            with(executionContext) {
+                                handler.action.flattens
+                                    .compute(Iterable::class)
+                                    .valueOrNull
+                            }
+                        }?.let { actions ->
+                            actions.forEach {
+                                launch {
+                                    scrap(
+                                        executionContext.branch(
+                                            visitedHandlerName = handler.name,
+                                            openGates = handler.opensGates,
+                                            closeGates = handler.closesGates,
+                                            valueOrNull = it,
+                                        ),
+                                    )
+                                }
                             }
                         }
-                    }
 
-                is ScraperDefinitionComputeAction ->
-                    with(executionContext) {
-                        val mappedVaues =
-                            runCatching(logger, context.computeMapsExpressionExceptionHandler) {
-                                handler.action.maps
-                                    .compute()
-                                    .mapNotNull { it.valueOrNull }
-                            } ?: return@coroutineScope
-
-                        val requestReference =
-                            when (handler.action) {
-                                is ScraperDefinitionMapAction -> null
-                                is ScraperDefinitionRequestAction ->
-                                    handler.action.let { requestAction ->
-                                        val httpRequest =
-                                            runCatching(logger, context.computeRequestExceptionHandler) {
-                                                val defaultUriComponents = context.definition.defaultUrl.computeUri()
-                                                val uriComponents = requestAction.url.computeUri(defaultUriComponents)
-
-                                                val uri = URI.create(uriComponents.toUriString())
-                                                val defaultHeaders =
-                                                    context.definition.defaultHeaders
-                                                        .compute(String::class)
-                                                        .mapEachValue(JexlReference<String>::valueOrNull)
-                                                val headers =
-                                                    requestAction.headers
-                                                        .compute(String::class)
-                                                        .mapEachValue(JexlReference<String>::valueOrNull)
-                                                val fields =
-                                                    requestAction.payload
-                                                        ?.fields
-                                                        ?.compute(String::class)
-                                                        ?.mapEachValue(JexlReference<String>::valueOrNull)
-                                                        ?.asMultiValueMap()
-
-                                                HttpRequest(
-                                                    uri,
-                                                    requestAction.method,
-                                                    defaultHeaders + headers + requestAction.payload?.type.asHeaders() +
-                                                        requestAction.parser.asHeaders(),
-                                                    fields,
-                                                )
-                                            } ?: return@coroutineScope
-
-                                        runCatching(logger, context.computeResponseExceptionHandler) {
-                                            val response = context.httpStatefulClient.exchange(httpRequest)
-                                            val responseBodyContext = branch(valueOrNull = response.body)
-                                            response.uri to requestAction.parser.parse(responseBodyContext)
-                                        } ?: return@coroutineScope
-                                    }
-                            }
-
-                        val requestValues = requestReference?.second?.valueOrNull?.let(::listOf) ?: emptyList()
-                        requestReference?.first to requestValues + mappedVaues
-                    }.let { (uri, output) ->
-                        scrap(
-                            executionContext.branch(
-                                visitedHandlerName = handler.name,
-                                openGates = handler.opensGates,
-                                closeGates = handler.closesGates,
-                                uri =
-                                    uri?.let {
-                                        UriComponentsBuilder
-                                            .fromUri(it)
-                                            .build()
-                                    },
-                                valueOrNull = if (output.size == 1) output[0] else output,
-                            ),
-                        )
-                    }
-
-                is ScraperDefinitionReturnAction ->
-                    runCatching(logger, context.computeReturnExceptionHandler) {
+                    is ScraperDefinitionComputeAction ->
                         with(executionContext) {
-                            ScraperResponseResult(
-                                context.definition.defaultUrl
-                                    .computeUri()
-                                    .toUriString(),
-                                context.definition.name,
-                                handler.action.description.computeDescription(),
-                                ScraperResponseResultBrand(
-                                    handler.action.brand.description
-                                        .computeBrand(),
-                                    handler.action.brand.image
-                                        .computeUriStringOrNull(),
-                                ),
-                                handler.action.price.computePrice(),
-                                handler.action.image.computeUriStringOrNull(),
-                                handler.action.stocks.computeStocks(),
-                                handler.action.grip.computeGradingOrNull(),
-                                handler.action.noise.computeNoiseLevelOrNull(),
-                                handler.action.decibels.computeDecibelsOrNull(),
-                                handler.action.consumption.computeGradingOrNull(),
-                                handler.action.details.mapNotNull {
-                                    it.name
-                                        .computeTextOrNull()
-                                        ?.let { name ->
-                                            it.description
-                                                .computeTextOrNull()
-                                                ?.let { description ->
-                                                    ScraperResponseResultDescriptiveDetail(
-                                                        name,
-                                                        description,
-                                                        it.image.computeUriStringOrNull(),
+                            val mappedVaues =
+                                runCatching(logger, context.computeMapsExpressionExceptionHandler) {
+                                    handler.action.maps
+                                        .compute()
+                                        .mapNotNull { it.valueOrNull }
+                                } ?: return@coroutineScope
+
+                            val requestReference =
+                                when (handler.action) {
+                                    is ScraperDefinitionMapAction -> null
+                                    is ScraperDefinitionRequestAction ->
+                                        handler.action.let { requestAction ->
+                                            val httpRequest =
+                                                runCatching(logger, context.computeRequestExceptionHandler) {
+                                                    val defaultUriComponents =
+                                                        context.definition.defaultUrl.computeUri()
+                                                    val uriComponents =
+                                                        requestAction.url.computeUri(defaultUriComponents)
+
+                                                    val uri = URI.create(uriComponents.toUriString())
+                                                    val defaultHeaders =
+                                                        context.definition.defaultHeaders
+                                                            .compute(String::class)
+                                                            .mapEachValue(JexlReference<String>::valueOrNull)
+                                                    val headers =
+                                                        requestAction.headers
+                                                            .compute(String::class)
+                                                            .mapEachValue(JexlReference<String>::valueOrNull)
+                                                    val fields =
+                                                        requestAction.payload
+                                                            ?.fields
+                                                            ?.compute(String::class)
+                                                            ?.mapEachValue(JexlReference<String>::valueOrNull)
+                                                            ?.asMultiValueMap()
+
+                                                    HttpRequest(
+                                                        uri,
+                                                        requestAction.method,
+                                                        defaultHeaders + headers + requestAction.payload?.type.asHeaders() +
+                                                            requestAction.parser.asHeaders(),
+                                                        fields,
                                                     )
-                                                } ?: it.image
-                                                .computeUriStringOrNull()
-                                                ?.let { image ->
-                                                    ScraperResponseResultDescriptionlessDetail(name, image)
-                                                }
+                                                } ?: return@coroutineScope
+
+                                            runCatching(logger, context.computeResponseExceptionHandler) {
+                                                val response = context.httpStatefulClient.exchange(httpRequest)
+                                                val responseBodyContext = branch(valueOrNull = response.body)
+                                                response.uri to requestAction.parser.parse(responseBodyContext)
+                                            } ?: return@coroutineScope
                                         }
-                                },
+                                }
+
+                            val requestValues = requestReference?.second?.valueOrNull?.let(::listOf) ?: emptyList()
+                            requestReference?.first to requestValues + mappedVaues
+                        }.let { (uri, output) ->
+                            scrap(
+                                executionContext.branch(
+                                    visitedHandlerName = handler.name,
+                                    openGates = handler.opensGates,
+                                    closeGates = handler.closesGates,
+                                    uri =
+                                        uri?.let {
+                                            UriComponentsBuilder
+                                                .fromUri(it)
+                                                .build()
+                                        },
+                                    valueOrNull = if (output.size == 1) output[0] else output,
+                                ),
                             )
                         }
-                    }?.let { send(it) }
+
+                    is ScraperDefinitionReturnAction ->
+                        runCatching(logger, context.computeReturnExceptionHandler) {
+                            with(executionContext) {
+                                ScraperResponseResult(
+                                    context.definition.defaultUrl
+                                        .computeUri()
+                                        .toUriString(),
+                                    context.definition.name,
+                                    handler.action.description.computeDescription(),
+                                    ScraperResponseResultBrand(
+                                        handler.action.brand.description
+                                            .computeBrand(),
+                                        handler.action.brand.image
+                                            .computeUriStringOrNull(),
+                                    ),
+                                    handler.action.price.computePrice(),
+                                    handler.action.image.computeUriStringOrNull(),
+                                    handler.action.stocks.computeStocks(),
+                                    handler.action.grip.computeGradingOrNull(),
+                                    handler.action.noise.computeNoiseLevelOrNull(),
+                                    handler.action.decibels.computeDecibelsOrNull(),
+                                    handler.action.consumption.computeGradingOrNull(),
+                                    handler.action.details.mapNotNull {
+                                        it.name
+                                            .computeTextOrNull()
+                                            ?.let { name ->
+                                                it.description
+                                                    .computeTextOrNull()
+                                                    ?.let { description ->
+                                                        ScraperResponseResultDescriptiveDetail(
+                                                            name,
+                                                            description,
+                                                            it.image.computeUriStringOrNull(),
+                                                        )
+                                                    } ?: it.image
+                                                    .computeUriStringOrNull()
+                                                    ?.let { image ->
+                                                        ScraperResponseResultDescriptionlessDetail(name, image)
+                                                    }
+                                            }
+                                    },
+                                )
+                            }
+                        }?.let { send(it) }
+                }
             }
         }
 }

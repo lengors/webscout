@@ -10,6 +10,8 @@ spring:
     threads:
         virtual:
             enabled: true
+    reactor:
+        context-propagation: auto
     liquibase:
         change-log: classpath:/db/db.changelog-master.yml
         url: jdbc:${DATABASE_URL:postgresql://localhost:5432/webscout}
@@ -27,6 +29,15 @@ spring:
     hazelcast:
         config: ${HAZELCAST_CONFIG:classpath:/hazelcast.yml}
 
+management:
+    otlp:
+        tracing:
+            endpoint: ${MANAGEMENT_OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+            export:
+                enabled: ${MANAGEMENT_OTLP_TRACING_EXPORT_ENABLED:false}
+    tracing:
+        sampling:
+            probability: ${MANAGEMENT_TRACING_SAMPLING_PROBABILITY:1.0}
 
 duckling:
     client:

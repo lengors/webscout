@@ -1,11 +1,14 @@
 package io.github.lengors.webscout.testing.utilities
 
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecification
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationDataPayload
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationDefaults
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationFlatAction
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationGates
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationHandler
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationJexlExpression
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationJsonPayload
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationPayloadMap
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationRequest
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationRequestAction
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationRequestMethod
@@ -22,6 +25,7 @@ import io.github.lengors.protoscout.domain.scrapers.specifications.models.Scrape
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationSettings
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationUrl
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationUrlParameter
+import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionPayloadType
 
 object TestingSpecifications {
     fun buildTestSpecification(
@@ -30,6 +34,7 @@ object TestingSpecifications {
         locale: String = "inputs.locale",
         requestParser: ScraperSpecificationRequestParser = ScraperSpecificationRequestParser.JSON,
         brokenGateLogic: Boolean = false,
+        payloadType: ScraperDefinitionPayloadType? = null,
     ): ScraperSpecification =
         ScraperSpecification(
             name,
@@ -49,6 +54,7 @@ object TestingSpecifications {
                 ScraperSpecificationJexlExpression("inputs.timezone"),
                 emptyList(),
                 listOf(
+                    ScraperSpecificationRequirement("test", ScraperSpecificationRequirementType.EMAIL, null),
                     ScraperSpecificationRequirement("locale", ScraperSpecificationRequirementType.TEXT, "en-GB"),
                     ScraperSpecificationRequirement(
                         "timezone",
@@ -80,9 +86,15 @@ object TestingSpecifications {
                                     ),
                                 ),
                             ),
-                            ScraperSpecificationRequestMethod.GET,
+                            if (payloadType != null) ScraperSpecificationRequestMethod.POST else ScraperSpecificationRequestMethod.GET,
                             null,
-                            null,
+                            payloadType?.let {
+                                val payload = ScraperSpecificationPayloadMap()
+                                when (it) {
+                                    ScraperDefinitionPayloadType.DATA -> ScraperSpecificationDataPayload(payload)
+                                    ScraperDefinitionPayloadType.JSON -> ScraperSpecificationJsonPayload(payload)
+                                }
+                            },
                             requestParser,
                         ),
                         null,

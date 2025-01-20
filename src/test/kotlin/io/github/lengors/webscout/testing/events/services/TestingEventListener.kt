@@ -6,6 +6,9 @@ import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperS
 class TestingEventListener : EventListener<ScraperSpecificationPersistenceEvent> {
     private val events: MutableList<ScraperSpecificationPersistenceEvent> = mutableListOf()
 
+    val count: Int
+        get() = events.size
+
     fun flushEvents(): List<ScraperSpecificationPersistenceEvent> {
         val output = events.toList()
         events.clear()

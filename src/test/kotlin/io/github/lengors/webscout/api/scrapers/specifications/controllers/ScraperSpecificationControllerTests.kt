@@ -1,6 +1,7 @@
 package io.github.lengors.webscout.api.scrapers.specifications.controllers
 
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecification
+import io.github.lengors.webscout.domain.events.models.Event
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityBatchDeletedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityCreatedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityDeletedEvent
@@ -12,6 +13,7 @@ import io.github.lengors.webscout.testing.postgres.configurations.PostgresTestCo
 import io.github.lengors.webscout.testing.utilities.TestingSpecifications
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
+import org.awaitility.Awaitility
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -20,10 +22,12 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
+import org.springframework.test.web.reactive.server.EntityExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
+import java.time.Duration
 
 @Import(PostgresTestContainerConfiguration::class, TestingEventListenerConfiguration::class)
 @SpringBootTest
@@ -39,6 +43,8 @@ class ScraperSpecificationControllerTests {
     private lateinit var scraperSpecificationService: ScraperSpecificationService
 
     private val testSpecification: ScraperSpecification = TestingSpecifications.buildTestSpecification()
+    private val testInvalidSpecification: ScraperSpecification =
+        TestingSpecifications.buildTestSpecification(locale = "inputs'.'locales")
     private val testPatchSpecification: ScraperSpecification =
         TestingSpecifications.buildTestSpecification(locale = "'en-GB'")
 
@@ -49,6 +55,9 @@ class ScraperSpecificationControllerTests {
                 .deleteAll()
                 .collect()
         }
+        Awaitility
+            .await()
+            .until { testingEventListener.count > 0 }
         testingEventListener.flushEvents()
     }
 
@@ -84,12 +93,7 @@ class ScraperSpecificationControllerTests {
             .contains(testPatchSpecification)
             .doesNotContain(testSpecification)
             .consumeWith<WebTestClient.ListBodySpec<ScraperSpecification>> {
-                it.responseBody?.let { specifications ->
-                    Assertions.assertEquals(
-                        listOf(ScraperSpecificationEntityBatchDeletedEvent(specifications)),
-                        testingEventListener.flushEvents(),
-                    )
-                }
+                it.assertEvents(::ScraperSpecificationEntityBatchDeletedEvent)
             }
 
         webTestClient.assertNone()
@@ -104,6 +108,28 @@ class ScraperSpecificationControllerTests {
         webTestClient
             .get(testSpecification.name)
             .assert(testSpecification)
+    }
+
+    @Test
+    fun `should fail to patch invalid specification`() {
+        webTestClient
+            .put(testSpecification)
+            .assert(testSpecification)
+
+        webTestClient
+            .patch(testInvalidSpecification)
+            .consumeWith { Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, it.status) }
+
+        webTestClient.assertOne()
+    }
+
+    @Test
+    fun `should fail to put invalid specification`() {
+        webTestClient
+            .put(testInvalidSpecification)
+            .consumeWith { Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, it.status) }
+
+        webTestClient.assertNone()
     }
 
     @Test
@@ -152,6 +178,18 @@ class ScraperSpecificationControllerTests {
         }
     }
 
+    private fun <T> EntityExchangeResult<T>.assertEvents(expectedEventProducer: (T) -> Event) {
+        responseBody
+            ?.let { listOf(expectedEventProducer(it)) }
+            ?.also {
+                Awaitility
+                    .await()
+                    .atMost(Duration.ofSeconds(20))
+                    .until { testingEventListener.count >= it.size }
+                Assertions.assertEquals(it, testingEventListener.flushEvents())
+            }
+    }
+
     private fun WebTestClient.assertOne() {
         this
             .get()
@@ -173,12 +211,7 @@ class ScraperSpecificationControllerTests {
             .submit(name)
             .consumeWith {
                 if (it.status.is2xxSuccessful) {
-                    it.responseBody?.let { specification ->
-                        Assertions.assertEquals(
-                            listOf(ScraperSpecificationEntityDeletedEvent(specification)),
-                            testingEventListener.flushEvents(),
-                        )
-                    }
+                    it.assertEvents(::ScraperSpecificationEntityDeletedEvent)
                 }
             }
 
@@ -193,12 +226,7 @@ class ScraperSpecificationControllerTests {
             .submit(scraperSpecification)
             .consumeWith {
                 if (it.status.is2xxSuccessful) {
-                    it.responseBody?.let { specification ->
-                        Assertions.assertEquals(
-                            listOf(ScraperSpecificationEntityUpdatedEvent(specification)),
-                            testingEventListener.flushEvents(),
-                        )
-                    }
+                    it.assertEvents(::ScraperSpecificationEntityUpdatedEvent)
                 }
             }
 
@@ -208,12 +236,7 @@ class ScraperSpecificationControllerTests {
             .submit(scraperSpecification)
             .consumeWith {
                 if (it.status.is2xxSuccessful) {
-                    it.responseBody?.let { specification ->
-                        Assertions.assertEquals(
-                            listOf(ScraperSpecificationEntityCreatedEvent(specification)),
-                            testingEventListener.flushEvents(),
-                        )
-                    }
+                    it.assertEvents(::ScraperSpecificationEntityCreatedEvent)
                 }
             }
 

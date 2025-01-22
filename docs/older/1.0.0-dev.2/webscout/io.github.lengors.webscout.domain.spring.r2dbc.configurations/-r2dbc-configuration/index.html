@@ -1,0 +1,311 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>R2dbcConfiguration</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script>
+<link href="../../../styles/multimodule.css" rel="Stylesheet">
+<link href="../../../images/github.svg">
+<link href="../../../styles/custom.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+            <a class="library-name--link" href="../../../index.html">
+                    webscout
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;webscout/io.github.lengors.webscout.domain.spring.r2dbc.configurations/-r2dbc-configuration/index.html&quot;}"><div class="dropdown versions-dropdown" data-role="dropdown">
+  <div class="button button_dropdown versions-dropdown-button" role="combobox" data-role="dropdown-toggle" aria-controls="versions-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Select version" tabindex="0">1.0.0-dev.2</div>
+  <div class="dropdown--list dropdown--list_positioned_left versions-dropdown-data" role="listbox" data-role="dropdown-listbox" aria-label="Versions" id="versions-listbox">
+    <div class="dropdown--header" data-remove-style="true" style="display: none"><span>Select version</span><button class="button" data-role="dropdown-toggle" aria-label="Close versions selection"><i class="ui-kit-icon ui-kit-icon_cross"></i></button></div>
+    <div><a href="../../../../../webscout/io.github.lengors.webscout.domain.spring.r2dbc.configurations/-r2dbc-configuration/index.html" class="dropdown--option dropdown--option-link" style="display: block; padding: 5px; color: #fff" data-remove-style="true" role="option">1.0.0-dev.3</a></div>
+    <div><a href="index.html" class="dropdown--option dropdown--option-link" style="display: block; padding: 5px; color: #fff" data-remove-style="true" role="option">1.0.0-dev.2</a></div>
+    <div><a href="../../../../1.0.0-dev.1/webscout/io.github.lengors.webscout.domain.spring.r2dbc.configurations/-r2dbc-configuration/index.html" class="dropdown--option dropdown--option-link" style="display: block; padding: 5px; color: #fff" data-remove-style="true" role="option">1.0.0-dev.1</a></div>
+  </div>
+  <div class="dropdown--overlay"></div>
+</div>
+</dokka-template-command>        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":/main" data-filter=":/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <a class="navigation-controls--btn navigation-controls--theme navigation-controls--github" id="github-toggle-button" role="button" alt="GitHub" href="https://github.com/lengors/webscout">
+                GitHub
+            </a>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    webscout
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="webscout::io.github.lengors.webscout.domain.spring.r2dbc.configurations/R2dbcConfiguration///PointingToDeclaration//-251573632">
+  <div class="breadcrumbs"><a href="../../../index.html">webscout</a><span class="delimiter">/</span><a href="../index.html">io.github.lengors.webscout.domain.spring.r2dbc.configurations</a><span class="delimiter">/</span><span class="current">R2dbcConfiguration</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>R2dbc</span><wbr><span><span>Configuration</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Configuration///PointingToDeclaration/"><span class="token annotation builtin">Configuration</span></span><span class="token punctuation">(</span><span>proxyBeanMethods<span class="token operator"> = </span><span class="breakable-word"><span class="token boolean">false</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="index.html">R2dbcConfiguration</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">r2dbcProperties<span class="token operator">: </span><span data-unresolved-link="org.springframework.boot.autoconfigure.r2dbc/R2dbcProperties///PointingToDeclaration/">R2dbcProperties</span><span class="token punctuation">, </span></span><span class="parameter ">converterDescriptors<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../io.github.lengors.webscout.domain.converters/-converter-descriptor/index.html">ConverterDescriptor</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token punctuation">, </span><span class="token operator">*</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="org.springframework.data.r2dbc.config/AbstractR2dbcConfiguration///PointingToDeclaration/">AbstractR2dbcConfiguration</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/lengors/webscout/tree/1.0.0-dev.2/src/main/kotlin/io/github/lengors/webscout/domain/spring/r2dbc/configurations/R2dbcConfiguration.kt#L11">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-398934590%2FConstructors%2F-251573632" anchor-label="R2dbcConfiguration" id="-398934590%2FConstructors%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-r2dbc-configuration.html"><span>R2dbc</span><wbr><span><span>Configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-398934590%2FConstructors%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">r2dbcProperties<span class="token operator">: </span><span data-unresolved-link="org.springframework.boot.autoconfigure.r2dbc/R2dbcProperties///PointingToDeclaration/">R2dbcProperties</span><span class="token punctuation">, </span></span><span class="parameter ">converterDescriptors<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../io.github.lengors.webscout.domain.converters/-converter-descriptor/index.html">ConverterDescriptor</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token punctuation">, </span><span class="token operator">*</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="1043898126%2FFunctions%2F-251573632" anchor-label="connectionFactory" id="1043898126%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="connection-factory.html"><span>connection</span><wbr><span><span>Factory</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1043898126%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="connection-factory.html"><span class="token function">connectionFactory</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="io.r2dbc.spi/ConnectionFactory///PointingToDeclaration/">ConnectionFactory</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1918139102%2FFunctions%2F-251573632" anchor-label="databaseClient" id="-1918139102%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1918139102%2FFunctions%2F-251573632"><span>database</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1918139102%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Bean///PointingToDeclaration/"><span class="token annotation builtin">Bean</span></span><span class="token punctuation">(</span><span>value<span class="token operator"> = </span><span class="token punctuation">[</span><span><span class="breakable-word"><span class="token string">"r2dbcDatabaseClient"</span></span><span class="token punctuation">, </span></span><wbr><span><span class="breakable-word"><span class="token string">"databaseClient"</span></span></span><wbr><span class="token punctuation">]</span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1918139102%2FFunctions%2F-251573632"><span class="token function">databaseClient</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.r2dbc.core/DatabaseClient///PointingToDeclaration/">DatabaseClient</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1151909535%2FFunctions%2F-251573632" anchor-label="getDialect" id="1151909535%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1151909535%2FFunctions%2F-251573632"><span>get</span><wbr><span><span>Dialect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1151909535%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#1151909535%2FFunctions%2F-251573632"><span class="token function">getDialect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">connectionFactory<span class="token operator">: </span><span data-unresolved-link="io.r2dbc.spi/ConnectionFactory///PointingToDeclaration/">ConnectionFactory</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.dialect/R2dbcDialect///PointingToDeclaration/">R2dbcDialect</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-850078200%2FFunctions%2F-251573632" anchor-label="r2dbcConverter" id="-850078200%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-850078200%2FFunctions%2F-251573632"><span>r2dbc</span><wbr><span><span>Converter</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-850078200%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Bean///PointingToDeclaration/"><span class="token annotation builtin">Bean</span></span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-850078200%2FFunctions%2F-251573632"><span class="token function">r2dbcConverter</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mappingContext<span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.mapping/R2dbcMappingContext///PointingToDeclaration/">R2dbcMappingContext</span><span class="token punctuation">, </span></span><span class="parameter ">r2dbcCustomConversions<span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.convert/R2dbcCustomConversions///PointingToDeclaration/">R2dbcCustomConversions</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.convert/MappingR2dbcConverter///PointingToDeclaration/">MappingR2dbcConverter</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1423304799%2FFunctions%2F-251573632" anchor-label="r2dbcCustomConversions" id="-1423304799%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1423304799%2FFunctions%2F-251573632"><span>r2dbc</span><wbr><span>Custom</span><wbr><span><span>Conversions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1423304799%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Bean///PointingToDeclaration/"><span class="token annotation builtin">Bean</span></span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1423304799%2FFunctions%2F-251573632"><span class="token function">r2dbcCustomConversions</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.convert/R2dbcCustomConversions///PointingToDeclaration/">R2dbcCustomConversions</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1129107855%2FFunctions%2F-251573632" anchor-label="r2dbcEntityTemplate" id="1129107855%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1129107855%2FFunctions%2F-251573632"><span>r2dbc</span><wbr><span>Entity</span><wbr><span><span>Template</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1129107855%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Bean///PointingToDeclaration/"><span class="token annotation builtin">Bean</span></span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#1129107855%2FFunctions%2F-251573632"><span class="token function">r2dbcEntityTemplate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">databaseClient<span class="token operator">: </span><span data-unresolved-link="org.springframework.r2dbc.core/DatabaseClient///PointingToDeclaration/">DatabaseClient</span><span class="token punctuation">, </span></span><span class="parameter ">dataAccessStrategy<span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.core/ReactiveDataAccessStrategy///PointingToDeclaration/">ReactiveDataAccessStrategy</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.core/R2dbcEntityTemplate///PointingToDeclaration/">R2dbcEntityTemplate</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-416443757%2FFunctions%2F-251573632" anchor-label="r2dbcManagedTypes" id="-416443757%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-416443757%2FFunctions%2F-251573632"><span>r2dbc</span><wbr><span>Managed</span><wbr><span><span>Types</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-416443757%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Bean///PointingToDeclaration/"><span class="token annotation builtin">Bean</span></span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-416443757%2FFunctions%2F-251573632"><span class="token function">r2dbcManagedTypes</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.data.relational/RelationalManagedTypes///PointingToDeclaration/">RelationalManagedTypes</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1946267333%2FFunctions%2F-251573632" anchor-label="r2dbcMappingContext" id="-1946267333%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1946267333%2FFunctions%2F-251573632"><span>r2dbc</span><wbr><span>Mapping</span><wbr><span><span>Context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1946267333%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Bean///PointingToDeclaration/"><span class="token annotation builtin">Bean</span></span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1946267333%2FFunctions%2F-251573632"><span class="token function">r2dbcMappingContext</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">namingStrategy<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Optional.html">Optional</a><span class="token operator">&lt;</span><span data-unresolved-link="org.springframework.data.relational.core.mapping/NamingStrategy///PointingToDeclaration/">NamingStrategy</span><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">r2dbcCustomConversions<span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.convert/R2dbcCustomConversions///PointingToDeclaration/">R2dbcCustomConversions</span><span class="token punctuation">, </span></span><span class="parameter ">r2dbcManagedTypes<span class="token operator">: </span><span data-unresolved-link="org.springframework.data.relational/RelationalManagedTypes///PointingToDeclaration/">RelationalManagedTypes</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.mapping/R2dbcMappingContext///PointingToDeclaration/">R2dbcMappingContext</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1399399976%2FFunctions%2F-251573632" anchor-label="reactiveDataAccessStrategy" id="-1399399976%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1399399976%2FFunctions%2F-251573632"><span>reactive</span><wbr><span>Data</span><wbr><span>Access</span><wbr><span><span>Strategy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1399399976%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="org.springframework.context.annotation/Bean///PointingToDeclaration/"><span class="token annotation builtin">Bean</span></span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1399399976%2FFunctions%2F-251573632"><span class="token function">reactiveDataAccessStrategy</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">converter<span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.convert/R2dbcConverter///PointingToDeclaration/">R2dbcConverter</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.springframework.data.r2dbc.core/ReactiveDataAccessStrategy///PointingToDeclaration/">ReactiveDataAccessStrategy</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="869135628%2FFunctions%2F-251573632" anchor-label="setApplicationContext" id="869135628%2FFunctions%2F-251573632" data-filterable-set=":/main"></a>
+          <div class="table-row" data-filterable-current=":/main" data-filterable-set=":/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#869135628%2FFunctions%2F-251573632"><span>set</span><wbr><span>Application</span><wbr><span><span>Context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="869135628%2FFunctions%2F-251573632"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#869135628%2FFunctions%2F-251573632"><span class="token function">setApplicationContext</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">applicationContext<span class="token operator">: </span><span data-unresolved-link="org.springframework.context/ApplicationContext///PointingToDeclaration/">ApplicationContext</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

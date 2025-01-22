@@ -1,3 +1,8 @@
+# [v1.0.0-dev.3](https://github.com/lengors/webscout/compare/1.0.0-dev.2...1.0.0-dev.3) (2025-01-22)
+
+## ✨ New Features
+- [`1a67161`](https://github.com/lengors/webscout/commit/1a67161)  Add support for exposing metrics
+
 # [v1.0.0-dev.2](https://github.com/lengors/webscout/compare/1.0.0-dev.1...1.0.0-dev.2) (2025-01-20)
 
 ## ✨ New Features

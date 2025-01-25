@@ -1,0 +1,3 @@
+.navigation-controls--github::before {
+    content: url("../images/github.svg") !important;
+}

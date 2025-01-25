@@ -6,7 +6,9 @@
  */
 
 pluginManagement {
+    val springDependencyManagementVersion: String by settings
     val ktlintPluginVersion: String by settings
+    val springBootVersion: String by settings
     val sonarqubeVersion: String by settings
     val kotlinVersion: String by settings
     val dokkaVersion: String by settings
@@ -14,10 +16,13 @@ pluginManagement {
 
     plugins {
         kotlin("jvm") version kotlinVersion
+        kotlin("plugin.spring") version kotlinVersion
         id("org.sonarqube") version sonarqubeVersion
         id("org.jetbrains.dokka") version dokkaVersion
         id("org.jetbrains.kotlinx.kover") version koverVersion
+        id("org.springframework.boot") version springBootVersion
         id("org.jlleitschuh.gradle.ktlint") version ktlintPluginVersion
+        id("io.spring.dependency-management") version springDependencyManagementVersion
     }
 }
 

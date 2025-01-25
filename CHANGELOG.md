@@ -1,3 +1,8 @@
+# [v1.0.0-dev.4](https://github.com/lengors/webscout/compare/1.0.0-dev.3...1.0.0-dev.4) (2025-01-25)
+
+## ✨ New Features
+- [`9c785e9`](https://github.com/lengors/webscout/commit/9c785e9)  Add virtual threads to scrapping process
+
 # [v1.0.0-dev.3](https://github.com/lengors/webscout/compare/1.0.0-dev.2...1.0.0-dev.3) (2025-01-22)
 
 ## ✨ New Features

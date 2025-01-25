@@ -29,12 +29,14 @@ import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperS
 import io.github.lengors.webscout.domain.spring.scrapers.models.asHeaders
 import io.github.lengors.webscout.domain.spring.scrapers.specifications.models.asHeaders
 import io.github.lengors.webscout.domain.spring.scrapers.specifications.models.parse
+import io.github.lengors.webscout.domain.utilities.VirtualThreadPerTaskExecutor
 import io.github.lengors.webscout.domain.utilities.asMultiValueMap
 import io.github.lengors.webscout.domain.utilities.mapEachValue
 import io.github.lengors.webscout.domain.utilities.runCatching
 import io.github.lengors.webscout.integrations.duckling.client.DucklingClient
 import io.micrometer.core.instrument.kotlin.asContextElement
 import io.micrometer.observation.ObservationRegistry
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -96,7 +98,7 @@ class ScraperService(
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Iterable<ScraperTask>) = scrap(scraperTasks.asFlow())
 
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Flow<ScraperTask>) =
-        withContext(observationRegistry.asContextElement()) {
+        withContext(observationRegistry.asContextElement() + Dispatchers.VirtualThreadPerTaskExecutor) {
             coroutineScope {
                 scraperTasks.collect {
                     launch { scrap(it) }

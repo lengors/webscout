@@ -305,13 +305,8 @@ class ScraperSpecificationControllerTests {
             .uri { uriBuilder ->
                 uriBuilder
                     .path("/scrapers/specifications")
-                    .let { spec ->
-                        names
-                            ?.fold(spec) { current, name ->
-                                current.queryParam("name", name)
-                            }
-                            ?: spec
-                    }.build()
+                    .queryParam("names", names)
+                    .build()
             }.exchange()
             .expectBodyList<ScraperSpecification>()
 }

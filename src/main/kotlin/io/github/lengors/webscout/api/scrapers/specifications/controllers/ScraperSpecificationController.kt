@@ -25,7 +25,7 @@ class ScraperSpecificationController(
 
     @DeleteMapping
     fun deleteAll(
-        @RequestParam(name = "name", required = false) names: Collection<String>? = null,
+        @RequestParam(required = false) names: Collection<String>? = null,
     ): Flow<ScraperSpecification> =
         names
             ?.let { persistenceService.deleteAll(it) }
@@ -38,7 +38,7 @@ class ScraperSpecificationController(
 
     @GetMapping
     fun findAll(
-        @RequestParam(name = "name", required = false) names: Collection<String>? = null,
+        @RequestParam(required = false) names: Collection<String>? = null,
     ): Flow<ScraperSpecification> =
         names
             ?.let { persistenceService.findAll(it) }

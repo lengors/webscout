@@ -50,6 +50,18 @@ class ScraperSpecificationService(
                 .let { emitAll(it) }
         }
 
+    override fun deleteAll(keys: Collection<String>): Flow<ScraperSpecification> =
+        flow {
+            scraperSpecificationRepository
+                .findAllByNameIn(keys)
+                .toList()
+                .also { scraperSpecificationRepository.deleteAll(it) }
+                .map { it.data }
+                .also { eventPublisher.publishEventAsync(ScraperSpecificationEntityBatchDeletedEvent(it)) }
+                .asFlow()
+                .let { emitAll(it) }
+        }
+
     @Transactional(readOnly = true)
     override suspend fun find(key: String): ScraperSpecification =
         scraperSpecificationRepository

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -23,7 +24,11 @@ class ScraperSpecificationController(
     ): ScraperSpecification = persistenceService.delete(name)
 
     @DeleteMapping
-    fun deleteAll(): Flow<ScraperSpecification> = persistenceService.deleteAll()
+    fun deleteAll(
+        @RequestParam(name = "name", required = false) names: Collection<String>? = null,
+    ): Flow<ScraperSpecification> = names
+        ?.let { persistenceService.deleteAll(it) }
+        ?: persistenceService.deleteAll()
 
     @GetMapping("/{name}")
     suspend fun find(
@@ -31,7 +36,12 @@ class ScraperSpecificationController(
     ): ScraperSpecification = persistenceService.find(name)
 
     @GetMapping
-    fun findAll(): Flow<ScraperSpecification> = persistenceService.findAll()
+    fun findAll(
+        @RequestParam(name = "name", required = false) names: Collection<String>? = null,
+    ): Flow<ScraperSpecification> =
+        names
+            ?.let { persistenceService.findAll(it) }
+            ?: persistenceService.findAll()
 
     @PutMapping
     suspend fun save(

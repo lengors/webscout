@@ -1,3 +1,8 @@
+# [v1.0.0-dev.6](https://github.com/lengors/webscout/compare/1.0.0-dev.5...1.0.0-dev.6) (2025-04-27)
+
+## 🐛 Bug Fixes
+- [`b3557a4`](https://github.com/lengors/webscout/commit/b3557a4)  Use plural form for query parameters taking multiple values
+
 # [v1.0.0-dev.5](https://github.com/lengors/webscout/compare/1.0.0-dev.4...1.0.0-dev.5) (2025-04-27)
 
 ## ✨ New Features

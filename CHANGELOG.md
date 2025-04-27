@@ -1,3 +1,12 @@
+# [v1.0.0-dev.5](https://github.com/lengors/webscout/compare/1.0.0-dev.4...1.0.0-dev.5) (2025-04-27)
+
+## ✨ New Features
+- [`160afc7`](https://github.com/lengors/webscout/commit/160afc7)  Add support for deleting and finding multiple specifications through query parameters 
+- [`2b5d030`](https://github.com/lengors/webscout/commit/2b5d030)  Add validation for the specification name 
+
+## 🔒 Security Issues
+- [`1d697dc`](https://github.com/lengors/webscout/commit/1d697dc) ️ Add dependency metadata verification
+
 # [v1.0.0-dev.4](https://github.com/lengors/webscout/compare/1.0.0-dev.3...1.0.0-dev.4) (2025-01-25)
 
 ## ✨ New Features

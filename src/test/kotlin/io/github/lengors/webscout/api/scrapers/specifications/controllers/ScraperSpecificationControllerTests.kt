@@ -100,6 +100,38 @@ class ScraperSpecificationControllerTests {
     }
 
     @Test
+    fun `should correctly put and, find and delete all specifications with given name`() {
+        webTestClient
+            .put(testSpecification)
+            .assert(testSpecification)
+
+        webTestClient
+            .get()
+            .submit()
+            .hasSize(1)
+            .contains(testSpecification)
+            .consumeWith<WebTestClient.ListBodySpec<ScraperSpecification>> {}
+
+        webTestClient
+            .get()
+            .submit(listOf(testSpecification.name))
+            .hasSize(1)
+            .contains(testSpecification)
+            .consumeWith<WebTestClient.ListBodySpec<ScraperSpecification>> {}
+
+        webTestClient
+            .delete()
+            .submit(listOf(testSpecification.name))
+            .hasSize(1)
+            .contains(testSpecification)
+            .consumeWith<WebTestClient.ListBodySpec<ScraperSpecification>> {
+                it.assertEvents(::ScraperSpecificationEntityBatchDeletedEvent)
+            }
+
+        webTestClient.assertNone()
+    }
+
+    @Test
     fun `should correctly find specification`() {
         webTestClient
             .put(testSpecification)
@@ -255,9 +287,20 @@ class ScraperSpecificationControllerTests {
             .exchange()
             .expectBody<ScraperSpecification>()
 
-    private fun WebTestClient.RequestHeadersUriSpec<*>.submit(): WebTestClient.ListBodySpec<ScraperSpecification> =
+    private fun WebTestClient.RequestHeadersUriSpec<*>.submit(names: Collection<String>? = null): WebTestClient.ListBodySpec<ScraperSpecification> =
         this
-            .uri("/scrapers/specifications")
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/scrapers/specifications")
+                    .let { spec ->
+                        names
+                            ?.fold(spec) { current, name ->
+                                current.queryParam("name", name)
+                            }
+                            ?: spec
+                    }
+                    .build()
+            }
             .exchange()
             .expectBodyList<ScraperSpecification>()
 }

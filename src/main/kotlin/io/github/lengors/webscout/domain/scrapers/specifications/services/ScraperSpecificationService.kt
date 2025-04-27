@@ -11,8 +11,10 @@ import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperS
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityDeletedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityUpdatedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.exceptions.models.ScraperInvalidSpecificationException
+import io.github.lengors.webscout.domain.scrapers.specifications.exceptions.models.ScraperInvalidSpecificationNameException
 import io.github.lengors.webscout.domain.scrapers.specifications.models.ScraperSpecificationEntity
 import io.github.lengors.webscout.domain.scrapers.specifications.repositories.ScraperSpecificationRepository
+import io.github.lengors.webscout.domain.text.exceptions.models.InvalidCharacterException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -82,8 +84,15 @@ class ScraperSpecificationService(
             .map { it.data }
 
     @Transactional
-    override suspend fun save(data: ScraperSpecification): ScraperSpecification =
-        runCatching { scraperService.computeScraperDefinition(data) }
+    override suspend fun save(data: ScraperSpecification): ScraperSpecification {
+        if (data.name.contains('/')) {
+            try {
+                throw InvalidCharacterException('/')
+            } catch (exception: InvalidCharacterException) {
+                throw ScraperInvalidSpecificationNameException(data.name, exception)
+            }
+        }
+        return runCatching { scraperService.computeScraperDefinition(data) }
             .recoverCatching { throw ScraperInvalidSpecificationException(data, it) }
             .map {
                 scraperSpecificationRepository
@@ -94,6 +103,7 @@ class ScraperSpecificationService(
                         .data
                         .also { eventPublisher.publishEventAsync(ScraperSpecificationEntityCreatedEvent(it)) }
             }.getOrThrow()
+    }
 
     @Transactional
     override suspend fun update(data: ScraperSpecification): ScraperSpecification =

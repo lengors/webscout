@@ -26,9 +26,10 @@ class ScraperSpecificationController(
     @DeleteMapping
     fun deleteAll(
         @RequestParam(name = "name", required = false) names: Collection<String>? = null,
-    ): Flow<ScraperSpecification> = names
-        ?.let { persistenceService.deleteAll(it) }
-        ?: persistenceService.deleteAll()
+    ): Flow<ScraperSpecification> =
+        names
+            ?.let { persistenceService.deleteAll(it) }
+            ?: persistenceService.deleteAll()
 
     @GetMapping("/{name}")
     suspend fun find(

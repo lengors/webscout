@@ -10,6 +10,9 @@ interface PersistenceService<T : Serializable> {
     @Transactional
     fun deleteAll(): Flow<T>
 
+    @Transactional
+    fun deleteAll(keys: Collection<String>): Flow<T>
+
     @Transactional(readOnly = true)
     fun findAll(): Flow<T>
 

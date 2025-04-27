@@ -47,6 +47,8 @@ class ScraperSpecificationControllerTests {
         TestingSpecifications.buildTestSpecification(locale = "inputs'.'locales")
     private val testPatchSpecification: ScraperSpecification =
         TestingSpecifications.buildTestSpecification(locale = "'en-GB'")
+    private val testInvalidSpecificationName: ScraperSpecification =
+        TestingSpecifications.buildTestSpecification(name = "invalid/name")
 
     @AfterEach
     fun cleanup() {
@@ -159,6 +161,15 @@ class ScraperSpecificationControllerTests {
     fun `should fail to put invalid specification`() {
         webTestClient
             .put(testInvalidSpecification)
+            .consumeWith { Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, it.status) }
+
+        webTestClient.assertNone()
+    }
+
+    @Test
+    fun `should fail to put invalid name specification`() {
+        webTestClient
+            .put(testInvalidSpecificationName)
             .consumeWith { Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, it.status) }
 
         webTestClient.assertNone()
@@ -287,7 +298,9 @@ class ScraperSpecificationControllerTests {
             .exchange()
             .expectBody<ScraperSpecification>()
 
-    private fun WebTestClient.RequestHeadersUriSpec<*>.submit(names: Collection<String>? = null): WebTestClient.ListBodySpec<ScraperSpecification> =
+    private fun WebTestClient.RequestHeadersUriSpec<*>.submit(
+        names: Collection<String>? = null,
+    ): WebTestClient.ListBodySpec<ScraperSpecification> =
         this
             .uri { uriBuilder ->
                 uriBuilder
@@ -298,9 +311,7 @@ class ScraperSpecificationControllerTests {
                                 current.queryParam("name", name)
                             }
                             ?: spec
-                    }
-                    .build()
-            }
-            .exchange()
+                    }.build()
+            }.exchange()
             .expectBodyList<ScraperSpecification>()
 }

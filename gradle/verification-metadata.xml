@@ -18,7 +18,10 @@
             <trusting group="org.awaitility"/>
          </trusted-key>
          <trusted-key id="09939C73246B4BA7444CAA453D002DBC5EA9615F" group="dev.drewhamilton.poko"/>
-         <trusted-key id="0A0EEF46B32AA9495FC5207C625599E19CF77AAB" group="io.github.lengors" name="protoscout" version="1.0.3"/>
+         <trusted-key id="0A0EEF46B32AA9495FC5207C625599E19CF77AAB">
+            <trusting group="io.github.lengors" name="protoscout" version="1.0.3"/>
+            <trusting group="io.github.lengors" name="protoscout" version="1.0.4"/>
+         </trusted-key>
          <trusted-key id="0B1B71E813C226033B16D8C5F0D228D8FF31B515" group="^io[.]zipkin($|([.].*))" regex="true"/>
          <trusted-key id="0B743A794876D3C78AB542A118D239B1CBCD2236" group="org.glassfish.jersey" name="jersey-bom"/>
          <trusted-key id="0CC641C3A62453AB390066C4A41F13C999945293" group="commons-collections" name="commons-collections" version="3.2.2"/>

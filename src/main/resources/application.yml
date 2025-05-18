@@ -33,6 +33,9 @@ spring:
 
 management:
     otlp:
+        metrics:
+            export:
+                enabled: false
         tracing:
             endpoint: ${MANAGEMENT_OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
             export:

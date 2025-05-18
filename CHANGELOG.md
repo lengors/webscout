@@ -1,3 +1,8 @@
+# [v1.0.0-dev.8](https://github.com/lengors/webscout/compare/1.0.0-dev.7...1.0.0-dev.8) (2025-05-18)
+
+## 🐛 Bug Fixes
+- [`a89f70fe`](https://github.com/lengors/webscout/commit/a89f70fe) ⬆️ Bump protoscout reference
+
 # [v1.0.0-dev.7](https://github.com/lengors/webscout/compare/1.0.0-dev.6...1.0.0-dev.7) (2025-05-10)
 
 ## 🐛 Bug Fixes

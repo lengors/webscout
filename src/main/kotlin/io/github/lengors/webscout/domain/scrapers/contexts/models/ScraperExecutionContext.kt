@@ -143,26 +143,24 @@ data class ScraperExecutionContext private constructor(
             ?.quantity()
             .value
 
-    fun ScraperDefinitionReturnExtractStockAction.computeStock(): List<ScraperResponseResultStock> =
-        listOf(
-            ScraperResponseResultStock(
-                availability.computeQuantity(),
-                storage.computeTextOrNull(),
-                deliveryDateTime.computeDateOrNull(),
-            ),
+    fun ScraperDefinitionReturnExtractStockAction.computeStock(): ScraperResponseResultStock =
+        ScraperResponseResultStock(
+            availability.computeQuantity(),
+            storage.computeTextOrNull(),
+            deliveringOn.computeDateOrNull(),
         )
 
     fun List<ScraperDefinitionReturnStockAction>.computeStocks(): List<ScraperResponseResultStock> =
         flatMap {
             when (it) {
-                is ScraperDefinitionReturnExtractStockAction -> it.computeStock()
+                is ScraperDefinitionReturnExtractStockAction -> listOf(it.computeStock())
                 is ScraperDefinitionReturnFlatStockAction ->
                     it.flattens
                         .compute(Iterable::class)
                         .valueOrNull
-                        ?.flatMap { value ->
+                        ?.map { value ->
                             with(branch(valueOrNull = value)) {
-                                it.extracts.computeStocks()
+                                it.extracts.computeStock()
                             }
                         }
                         ?: emptyList()

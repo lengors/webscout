@@ -184,35 +184,33 @@ object TestingSpecifications {
                                             ScraperSpecificationRequestParser.TEXT -> ""
                                         },
                                     ),
-                                    listOf(
-                                        ScraperSpecificationReturnExtractStock(
-                                            ScraperSpecificationJexlExpression(
-                                                when (requestParser) {
-                                                    ScraperSpecificationRequestParser.HTML ->
-                                                        "select('.//p[contains(@class, \\'availability\\')]')"
+                                    ScraperSpecificationReturnExtractStock(
+                                        ScraperSpecificationJexlExpression(
+                                            when (requestParser) {
+                                                ScraperSpecificationRequestParser.HTML ->
+                                                    "select('.//p[contains(@class, \\'availability\\')]')"
 
-                                                    ScraperSpecificationRequestParser.JSON -> "select('/availability')"
-                                                    ScraperSpecificationRequestParser.TEXT -> ""
-                                                },
-                                            ),
-                                            ScraperSpecificationJexlExpression(
-                                                when (requestParser) {
-                                                    ScraperSpecificationRequestParser.HTML ->
-                                                        "select('.//p[contains(@class, \\'storage\\')]')"
+                                                ScraperSpecificationRequestParser.JSON -> "select('/availability')"
+                                                ScraperSpecificationRequestParser.TEXT -> ""
+                                            },
+                                        ),
+                                        ScraperSpecificationJexlExpression(
+                                            when (requestParser) {
+                                                ScraperSpecificationRequestParser.HTML ->
+                                                    "select('.//p[contains(@class, \\'storage\\')]')"
 
-                                                    ScraperSpecificationRequestParser.JSON -> "select('/storage')"
-                                                    ScraperSpecificationRequestParser.TEXT -> ""
-                                                },
-                                            ),
-                                            ScraperSpecificationJexlExpression(
-                                                when (requestParser) {
-                                                    ScraperSpecificationRequestParser.HTML ->
-                                                        "select('.//p[contains(@class, \\'delivery\\')]')"
+                                                ScraperSpecificationRequestParser.JSON -> "select('/storage')"
+                                                ScraperSpecificationRequestParser.TEXT -> ""
+                                            },
+                                        ),
+                                        ScraperSpecificationJexlExpression(
+                                            when (requestParser) {
+                                                ScraperSpecificationRequestParser.HTML ->
+                                                    "select('.//p[contains(@class, \\'delivery\\')]')"
 
-                                                    ScraperSpecificationRequestParser.JSON -> "select('/delivery')"
-                                                    ScraperSpecificationRequestParser.TEXT -> ""
-                                                },
-                                            ),
+                                                ScraperSpecificationRequestParser.JSON -> "select('/delivery')"
+                                                ScraperSpecificationRequestParser.TEXT -> ""
+                                            },
                                         ),
                                     ),
                                 ),

@@ -9,7 +9,7 @@ import org.apache.commons.jexl3.JexlExpression
 data class ScraperDefinitionReturnExtractStockAction private constructor(
     val availability: JexlExpression,
     val storage: JexlExpression? = null,
-    val deliveryDateTime: JexlExpression? = null,
+    val deliveringOn: JexlExpression? = null,
 ) : ScraperDefinitionReturnStockAction {
     constructor(
         specification: ScraperSpecificationReturnExtractStock,
@@ -17,6 +17,6 @@ data class ScraperDefinitionReturnExtractStockAction private constructor(
     ) : this(
         jexlEngine.createExpression(specification.availability),
         specification.storage?.let(jexlEngine::createExpression),
-        specification.deliveryDateTime?.let(jexlEngine::createExpression),
+        specification.deliveringOn?.let(jexlEngine::createExpression),
     )
 }

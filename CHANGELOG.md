@@ -1,3 +1,8 @@
+# [v1.0.0-dev.9](https://github.com/lengors/webscout/compare/1.0.0-dev.8...1.0.0-dev.9) (2025-06-10)
+
+## 🐛 Bug Fixes
+- [`bcd257d3`](https://github.com/lengors/webscout/commit/bcd257d3) ⬆️ Bump protoscout reference
+
 # [v1.0.0-dev.8](https://github.com/lengors/webscout/compare/1.0.0-dev.7...1.0.0-dev.8) (2025-05-18)
 
 ## 🐛 Bug Fixes

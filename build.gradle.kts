@@ -59,6 +59,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -96,6 +97,10 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:$mockWebServerVersion")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+
+    // NOTE: Temporary addition to support recent version of docker -
+    //  Should be removed once Spring bumps testcontainers to a newer version
+    testImplementation("org.testcontainers:testcontainers:2.0.2")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:r2dbc")

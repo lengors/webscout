@@ -1,3 +1,8 @@
+# [v1.0.0-dev.10](https://github.com/lengors/webscout/compare/1.0.0-dev.9...1.0.0-dev.10) (2025-12-18)
+
+## 🐛 Bug Fixes
+- [`1de1fa2d`](https://github.com/lengors/webscout/commit/1de1fa2d)  Bump protoscout reference
+
 # [v1.0.0-dev.9](https://github.com/lengors/webscout/compare/1.0.0-dev.8...1.0.0-dev.9) (2025-06-10)
 
 ## 🐛 Bug Fixes

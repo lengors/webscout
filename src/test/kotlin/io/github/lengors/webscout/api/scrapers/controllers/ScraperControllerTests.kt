@@ -402,7 +402,7 @@ class ScraperControllerTests {
                     specification.name,
                     "TEST-DESCRIPTION-0",
                     ScraperResponseResultBrand("test-brand-0", "$baseUrl/other"),
-                    ScraperResponseResultPrice("10", "EUR"),
+                    ScraperResponseResultPrice(10.0, "EUR"),
                     "$baseUrl/otherImage",
                     listOf(
                         ScraperResponseResultStock(
@@ -435,7 +435,7 @@ class ScraperControllerTests {
                     specification.name,
                     "TEST-DESCRIPTION-1",
                     ScraperResponseResultBrand("test-brand-1", "http://localhost:9999/foo"),
-                    ScraperResponseResultPrice("15", "EUR"),
+                    ScraperResponseResultPrice(15.0, "EUR"),
                     "http://localhost:9999/fooImage",
                     listOf(
                         ScraperResponseResultStock(

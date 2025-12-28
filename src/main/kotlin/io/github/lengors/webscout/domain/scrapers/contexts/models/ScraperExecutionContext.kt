@@ -22,7 +22,6 @@ import org.apache.commons.jexl3.ObjectContext
 import org.springframework.util.CollectionUtils
 import org.springframework.web.util.UriComponents
 import org.springframework.web.util.UriComponentsBuilder
-import java.math.BigDecimal
 import java.time.ZoneId
 import java.util.Locale
 import kotlin.reflect.safeCast
@@ -129,9 +128,7 @@ data class ScraperExecutionContext private constructor(
             .value
             .let {
                 ScraperResponseResultPrice(
-                    it.number
-                        .numberValueExact(BigDecimal::class.java)
-                        .toPlainString(),
+                    it.number.doubleValueExact(),
                     it.currency.currencyCode,
                 )
             }

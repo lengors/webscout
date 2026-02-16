@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class DucklingAmountOfMoneyResponse(
+data class DucklingNumberResponse(
     @JsonProperty(DucklingResponse.VALUE)
-    override val value: DucklingAmountOfMoneyResponseValue,
+    override val value: DucklingNumberResponseValue,
 ) : DucklingAmountOfMoneyLikeResponse {
     @JsonProperty(DucklingResponse.DIMENSION)
-    override val dimension: DucklingAmountOfMoneyDimension = DucklingAmountOfMoneyDimension
+    override val dimension: DucklingNumberDimension = DucklingNumberDimension
 }

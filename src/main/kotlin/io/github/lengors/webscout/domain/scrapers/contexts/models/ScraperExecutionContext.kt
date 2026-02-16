@@ -85,12 +85,13 @@ data class ScraperExecutionContext private constructor(
             ?.brand()
             .value
 
-    fun JexlExpression?.computeDateOrNull(): ScraperResponseResultDateTime? =
+    suspend fun JexlExpression?.computeDateOrNull(): ScraperResponseResultDateTime? =
         this
             .compute()
             .let(ScraperReference::class::safeCast)
             ?.date()
             ?.valueOrNull
+            ?.invoke()
 
     fun JexlExpression?.computeDecibelsOrNull(): Int? =
         this
@@ -120,18 +121,19 @@ data class ScraperExecutionContext private constructor(
             ?.noiseLevel()
             ?.valueOrNull
 
-    fun JexlExpression.computePrice(): ScraperResponseResultPrice =
+    suspend fun JexlExpression.computePrice(): ScraperResponseResultPrice =
         this
             .compute()
             .let(ScraperReference::class::safeCast)
             ?.price()
             .value
-            .let {
+            .invoke()
+            ?.let {
                 ScraperResponseResultPrice(
                     it.number.doubleValueExact(),
                     it.currency.currencyCode,
                 )
-            }
+            }!!
 
     fun JexlExpression.computeQuantity(): ScraperResponseResultQuantity =
         this
@@ -140,14 +142,14 @@ data class ScraperExecutionContext private constructor(
             ?.quantity()
             .value
 
-    fun ScraperDefinitionReturnExtractStockAction.computeStock(): ScraperResponseResultStock =
+    suspend fun ScraperDefinitionReturnExtractStockAction.computeStock(): ScraperResponseResultStock =
         ScraperResponseResultStock(
             availability.computeQuantity(),
             storage.computeTextOrNull(),
             deliveringOn.computeDateOrNull(),
         )
 
-    fun List<ScraperDefinitionReturnStockAction>.computeStocks(): List<ScraperResponseResultStock> =
+    suspend fun List<ScraperDefinitionReturnStockAction>.computeStocks(): List<ScraperResponseResultStock> =
         flatMap {
             when (it) {
                 is ScraperDefinitionReturnExtractStockAction -> listOf(it.computeStock())

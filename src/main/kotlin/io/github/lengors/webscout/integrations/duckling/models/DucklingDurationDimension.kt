@@ -1,7 +1,7 @@
 package io.github.lengors.webscout.integrations.duckling.models
 
-data object DucklingDateTimeDimension : DucklingDateTimeLikeDimension {
-    const val VALUE = "time"
+data object DucklingDurationDimension : DucklingDateTimeLikeDimension {
+    const val VALUE = "duration"
 
     override fun toString(): String = VALUE
 }

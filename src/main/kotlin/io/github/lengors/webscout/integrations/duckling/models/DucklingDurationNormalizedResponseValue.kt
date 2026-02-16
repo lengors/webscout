@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class DucklingAmountOfMoneyResponseValue(
+data class DucklingDurationNormalizedResponseValue(
     @JsonProperty("value")
-    val value: Double,
-    @JsonProperty("unit")
-    val unit: String,
-) : DucklingAmountOfMoneyLikeResponseValue
+    val value: Int,
+)

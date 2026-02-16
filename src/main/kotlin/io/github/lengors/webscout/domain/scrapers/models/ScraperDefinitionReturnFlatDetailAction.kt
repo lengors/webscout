@@ -1,20 +1,20 @@
 package io.github.lengors.webscout.domain.scrapers.models
 
-import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnFlatStock
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnFlatDetail
 import io.github.lengors.webscout.domain.jexl.services.createExpression
 import org.apache.commons.jexl3.JexlEngine
 import org.apache.commons.jexl3.JexlExpression
 
 @ConsistentCopyVisibility
-data class ScraperDefinitionReturnFlatStockAction private constructor(
+data class ScraperDefinitionReturnFlatDetailAction private constructor(
     val flattens: List<JexlExpression>,
-    val extracts: ScraperDefinitionReturnStock,
-) : ScraperDefinitionReturnStockAction {
+    val extracts: ScraperDefinitionReturnDetail,
+) : ScraperDefinitionReturnDetailAction {
     constructor(
-        specification: ScraperSpecificationReturnFlatStock,
+        specification: ScraperSpecificationReturnFlatDetail,
         jexlEngine: JexlEngine,
     ) : this(
         specification.flattens.map(jexlEngine::createExpression),
-        ScraperDefinitionReturnStock(specification.extracts, jexlEngine),
+        ScraperDefinitionReturnDetail(specification.extracts, jexlEngine),
     )
 }

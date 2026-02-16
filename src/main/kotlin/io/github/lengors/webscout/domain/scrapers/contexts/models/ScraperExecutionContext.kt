@@ -2,6 +2,9 @@ package io.github.lengors.webscout.domain.scrapers.contexts.models
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultDateTime
+import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultDescriptionlessDetail
+import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultDescriptiveDetail
+import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultDetail
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultGrading
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultNoiseLevel
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultPrice
@@ -11,7 +14,10 @@ import io.github.lengors.webscout.domain.jexl.models.JexlExecutionContext
 import io.github.lengors.webscout.domain.jexl.models.JexlReference
 import io.github.lengors.webscout.domain.jexl.models.value
 import io.github.lengors.webscout.domain.jexl.utilities.JexlStringUtilities
+import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnDetailAction
+import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnExtractDetailAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnExtractStockAction
+import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnFlatDetailAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnFlatStockAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnStockAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionUrl
@@ -24,6 +30,7 @@ import org.springframework.web.util.UriComponents
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.ZoneId
 import java.util.Locale
+import kotlin.collections.flatMap
 import kotlin.reflect.safeCast
 
 @ConsistentCopyVisibility
@@ -107,6 +114,45 @@ data class ScraperExecutionContext private constructor(
             ?.description()
             .value
 
+    fun ScraperDefinitionReturnExtractDetailAction.computeDetail(): ScraperResponseResultDetail? =
+        name
+            .computeTextOrNull()
+            ?.let { name ->
+                description
+                    .computeTextOrNull()
+                    ?.let { description ->
+                        ScraperResponseResultDescriptiveDetail(
+                            name,
+                            description,
+                            image.computeUriStringOrNull(),
+                        )
+                    } ?: image
+                    .computeUriStringOrNull()
+                    ?.let { image ->
+                        ScraperResponseResultDescriptionlessDetail(name, image)
+                    }
+            }
+
+    fun List<ScraperDefinitionReturnDetailAction>.computeDetails(): List<ScraperResponseResultDetail> =
+        flatMap { detailAction ->
+            when (detailAction) {
+                is ScraperDefinitionReturnExtractDetailAction ->
+                    detailAction
+                        .computeDetail()
+                        ?.let(::listOf)
+                        ?: emptyList()
+
+                is ScraperDefinitionReturnFlatDetailAction ->
+                    detailAction.flattens
+                        .flatMap { it.compute(Iterable::class).valueOrNull ?: emptyList() }
+                        .flatMap { value ->
+                            with(branch(valueOrNull = value)) {
+                                detailAction.extracts.computeDetails()
+                            }
+                        }
+            }
+        }
+
     fun JexlExpression?.computeGradingOrNull(): ScraperResponseResultGrading? =
         this
             .compute()
@@ -150,19 +196,17 @@ data class ScraperExecutionContext private constructor(
         )
 
     suspend fun List<ScraperDefinitionReturnStockAction>.computeStocks(): List<ScraperResponseResultStock> =
-        flatMap {
-            when (it) {
-                is ScraperDefinitionReturnExtractStockAction -> listOf(it.computeStock())
+        flatMap { stockAction ->
+            when (stockAction) {
+                is ScraperDefinitionReturnExtractStockAction -> listOf(stockAction.computeStock())
                 is ScraperDefinitionReturnFlatStockAction ->
-                    it.flattens
-                        .compute(Iterable::class)
-                        .valueOrNull
-                        ?.map { value ->
+                    stockAction.flattens
+                        .flatMap { it.compute(Iterable::class).valueOrNull ?: emptyList() }
+                        .flatMap { value ->
                             with(branch(valueOrNull = value)) {
-                                it.extracts.computeStock()
+                                stockAction.extracts.computeStocks()
                             }
                         }
-                        ?: emptyList()
             }
         }
 

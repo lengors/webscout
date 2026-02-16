@@ -1,11 +1,30 @@
 package io.github.lengors.webscout.domain.scrapers.models
 
-import org.apache.commons.jexl3.JexlExpression
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnDescriptionlessDetail
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnDescriptiveDetail
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnDetail
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnFlatDetail
+import org.apache.commons.jexl3.JexlEngine
 
-sealed interface ScraperDefinitionReturnDetail {
-    val name: JexlExpression
+@JvmInline
+value class ScraperDefinitionReturnDetail private constructor(
+    private val actions: List<ScraperDefinitionReturnDetailAction>,
+) : List<ScraperDefinitionReturnDetailAction> by actions {
+    constructor(
+        specifications: List<ScraperSpecificationReturnDetail>,
+        jexlEngine: JexlEngine,
+    ) : this(
+        specifications.map {
+            when (it) {
+                is ScraperSpecificationReturnDescriptiveDetail ->
+                    ScraperDefinitionReturnDescriptiveDetailAction(it, jexlEngine)
 
-    val description: JexlExpression?
+                is ScraperSpecificationReturnDescriptionlessDetail ->
+                    ScraperDefinitionReturnDescriptionlessDetailAction(it, jexlEngine)
 
-    val image: JexlExpression?
+                is ScraperSpecificationReturnFlatDetail ->
+                    ScraperDefinitionReturnFlatDetailAction(it, jexlEngine)
+            }
+        },
+    )
 }

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponse
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResult
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultBrand
-import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultDescriptionlessDetail
-import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultDescriptiveDetail
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecification
 import io.github.lengors.webscout.domain.events.models.EventListener
 import io.github.lengors.webscout.domain.jexl.models.JexlReference
@@ -19,6 +17,7 @@ import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinition
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionComputeAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionFlatAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionMapAction
+import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionPayloadType
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionRequestAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperTask
@@ -156,9 +155,9 @@ class ScraperService(
                     is ScraperDefinitionFlatAction ->
                         runCatching(logger, context.computeFlatExpressionExceptionHandler) {
                             with(executionContext) {
-                                handler.action.flattens
-                                    .compute(Iterable::class)
-                                    .valueOrNull
+                                handler.action.flattens.flatMap {
+                                    it.compute(Iterable::class).valueOrNull ?: emptyList()
+                                }
                             }
                         }?.let { actions ->
                             actions.forEach {
@@ -206,11 +205,19 @@ class ScraperService(
                                                             .compute(String::class)
                                                             .mapEachValue(JexlReference<String>::valueOrNull)
                                                     val fields =
-                                                        requestAction.payload
-                                                            ?.fields
-                                                            ?.compute(String::class)
-                                                            ?.mapEachValue(JexlReference<String>::valueOrNull)
-                                                            ?.asMultiValueMap()
+                                                        requestAction.payload?.let { payload ->
+                                                            payload.fields
+                                                                .associate {
+                                                                    val name = it.name.compute(String::class).valueOrNull
+                                                                    val value = it.value.compute(Any::class).valueOrNull
+                                                                    name to value?.toString()
+                                                                }.let {
+                                                                    when (payload.type) {
+                                                                        ScraperDefinitionPayloadType.DATA -> it.asMultiValueMap()
+                                                                        ScraperDefinitionPayloadType.JSON -> it
+                                                                    }
+                                                                }
+                                                        }
 
                                                     HttpRequest(
                                                         uri,
@@ -270,25 +277,7 @@ class ScraperService(
                                     handler.action.noise.computeNoiseLevelOrNull(),
                                     handler.action.decibels.computeDecibelsOrNull(),
                                     handler.action.consumption.computeGradingOrNull(),
-                                    handler.action.details.mapNotNull {
-                                        it.name
-                                            .computeTextOrNull()
-                                            ?.let { name ->
-                                                it.description
-                                                    .computeTextOrNull()
-                                                    ?.let { description ->
-                                                        ScraperResponseResultDescriptiveDetail(
-                                                            name,
-                                                            description,
-                                                            it.image.computeUriStringOrNull(),
-                                                        )
-                                                    } ?: it.image
-                                                    .computeUriStringOrNull()
-                                                    ?.let { image ->
-                                                        ScraperResponseResultDescriptionlessDetail(name, image)
-                                                    }
-                                            }
-                                    },
+                                    handler.action.details.computeDetails(),
                                 )
                             }
                         }?.let { send(it) }

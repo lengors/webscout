@@ -6,18 +6,36 @@ import io.github.lengors.webscout.domain.scrapers.contexts.models.ScraperExecuti
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 
-fun ScraperSpecificationRequestParser.asHeaders(): Map<String, String> = mapOf(HttpHeaders.ACCEPT to "$mediaType")
+fun ScraperSpecificationRequestParser.asHeaders(): Map<String, String> =
+    mediaType
+        ?.let { mapOf(HttpHeaders.ACCEPT to "$it") }
+        ?: emptyMap()
 
-val ScraperSpecificationRequestParser.mediaType: MediaType
+val ScraperSpecificationRequestParser.mediaType: MediaType?
     get() =
         when (this) {
+            ScraperSpecificationRequestParser.AUTO -> null
             ScraperSpecificationRequestParser.HTML -> MediaType.TEXT_HTML
             ScraperSpecificationRequestParser.JSON -> MediaType.APPLICATION_JSON
             ScraperSpecificationRequestParser.TEXT -> MediaType.TEXT_PLAIN
         }
 
-fun ScraperSpecificationRequestParser.parse(executionContext: ScraperExecutionContext): JexlReference<Any> =
+fun ScraperSpecificationRequestParser.parse(
+    executionContext: ScraperExecutionContext,
+    headers: Map<String, List<String>>? = null,
+): JexlReference<Any> =
     when (this) {
+        ScraperSpecificationRequestParser.AUTO ->
+            when (
+                headers
+                    ?.get(HttpHeaders.CONTENT_TYPE.lowercase())
+                    ?.firstOrNull()
+            ) {
+                MediaType.TEXT_HTML_VALUE -> ScraperSpecificationRequestParser.HTML
+                MediaType.APPLICATION_JSON_VALUE -> ScraperSpecificationRequestParser.JSON
+                else -> ScraperSpecificationRequestParser.TEXT
+            }.parse(executionContext)
+
         ScraperSpecificationRequestParser.HTML -> executionContext.html()
         ScraperSpecificationRequestParser.JSON -> executionContext.json()
         ScraperSpecificationRequestParser.TEXT -> executionContext.text()

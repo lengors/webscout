@@ -1,8 +1,6 @@
 package io.github.lengors.webscout.domain.scrapers.models
 
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnAction
-import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnDescriptionlessDetail
-import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationReturnDescriptiveDetail
 import io.github.lengors.webscout.domain.jexl.services.createExpression
 import org.apache.commons.jexl3.JexlEngine
 import org.apache.commons.jexl3.JexlExpression
@@ -18,7 +16,7 @@ data class ScraperDefinitionReturnAction private constructor(
     val noise: JexlExpression? = null,
     val decibels: JexlExpression? = null,
     val consumption: JexlExpression? = null,
-    val details: List<ScraperDefinitionReturnDetail> = emptyList(),
+    val details: List<ScraperDefinitionReturnDetailAction> = emptyList(),
 ) : ScraperDefinitionAction {
     constructor(
         specification: ScraperSpecificationReturnAction,
@@ -33,20 +31,8 @@ data class ScraperDefinitionReturnAction private constructor(
         specification.returns.noise?.let(jexlEngine::createExpression),
         specification.returns.decibels?.let(jexlEngine::createExpression),
         specification.returns.consumption?.let(jexlEngine::createExpression),
-        specification.returns.details?.map {
-            when (it) {
-                is ScraperSpecificationReturnDescriptiveDetail ->
-                    ScraperDefinitionReturnDescriptiveDetail(
-                        it,
-                        jexlEngine,
-                    )
-
-                is ScraperSpecificationReturnDescriptionlessDetail ->
-                    ScraperDefinitionReturnVisualDetail(
-                        it,
-                        jexlEngine,
-                    )
-            }
-        } ?: emptyList(),
+        specification.returns.details
+            ?.let { ScraperDefinitionReturnDetail(it, jexlEngine) }
+            ?: emptyList(),
     )
 }

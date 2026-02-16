@@ -7,10 +7,10 @@ import org.apache.commons.jexl3.JexlExpression
 
 @ConsistentCopyVisibility
 data class ScraperDefinitionFlatAction private constructor(
-    val flattens: JexlExpression,
+    val flattens: List<JexlExpression>,
 ) : ScraperDefinitionAction {
     constructor(
         specification: ScraperSpecificationFlatAction,
         jexlEngine: JexlEngine,
-    ) : this(jexlEngine.createExpression(specification.flattens))
+    ) : this(specification.flattens.map(jexlEngine::createExpression))
 }

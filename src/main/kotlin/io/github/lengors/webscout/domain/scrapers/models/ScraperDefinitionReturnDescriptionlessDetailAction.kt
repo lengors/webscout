@@ -6,10 +6,10 @@ import org.apache.commons.jexl3.JexlEngine
 import org.apache.commons.jexl3.JexlExpression
 
 @ConsistentCopyVisibility
-data class ScraperDefinitionReturnVisualDetail private constructor(
+data class ScraperDefinitionReturnDescriptionlessDetailAction private constructor(
     override val name: JexlExpression,
     override val image: JexlExpression,
-) : ScraperDefinitionReturnDetail {
+) : ScraperDefinitionReturnExtractDetailAction {
     constructor(
         specification: ScraperSpecificationReturnDescriptionlessDetail,
         jexlEngine: JexlEngine,

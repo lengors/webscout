@@ -28,8 +28,9 @@ spring:
         type: caffeine
     hazelcast:
         config: ${HAZELCAST_CONFIG:classpath:/hazelcast.yml}
-    codec:
-        max-in-memory-size: ${CODEC_MAX_IN_MEMORY_SIZE:16MB}
+    http:
+        codecs:
+            max-in-memory-size: ${HTTP_CODECS_MAX_IN_MEMORY_SIZE:16MB}
 
 management:
     otlp:

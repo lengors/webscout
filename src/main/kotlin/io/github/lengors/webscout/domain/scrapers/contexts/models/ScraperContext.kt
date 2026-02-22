@@ -1,8 +1,10 @@
 package io.github.lengors.webscout.domain.scrapers.contexts.models
 
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseErrorCode
-import io.github.lengors.webscout.domain.network.http.services.HttpStatefulClient
-import io.github.lengors.webscout.domain.network.http.services.HttpStatefulClientBuilder
+import io.github.lengors.webscout.domain.network.http.services.HttpExchanger
+import io.github.lengors.webscout.domain.network.http.services.HttpExchangerProvider
+import io.github.lengors.webscout.domain.network.http.services.HttpSession
+import io.github.lengors.webscout.domain.network.http.services.HttpSessionProvider
 import io.github.lengors.webscout.domain.scrapers.exceptions.handlers.ScraperExceptionHandler
 import io.github.lengors.webscout.domain.scrapers.exceptions.handlers.ScraperHandlerExceptionHandler
 import io.github.lengors.webscout.domain.scrapers.exceptions.handlers.ScraperRequirementExceptionHandler
@@ -10,7 +12,8 @@ import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinition
 
 data class ScraperContext(
     val definition: ScraperDefinition,
-    private val httpStatefulClientBuilder: HttpStatefulClientBuilder,
+    private val httpSessionProvider: HttpSessionProvider,
+    private val httpExchangerProvider: HttpExchangerProvider
 ) {
     val computeDefaultGatesExceptionHandler: ScraperExceptionHandler by lazy {
         ScraperExceptionHandler(ScraperResponseErrorCode.COMPUTE_DEFAULT_GATES, definition.name)
@@ -40,8 +43,12 @@ data class ScraperContext(
         ScraperHandlerExceptionHandler(definition.name)
     }
 
-    val httpStatefulClient: HttpStatefulClient by lazy {
-        httpStatefulClientBuilder.build(definition.certificates)
+    val httpExchanger: HttpExchanger by lazy {
+        httpExchangerProvider.provide(definition.certificates)
+    }
+
+    val httpSession: HttpSession by lazy {
+        httpSessionProvider.provide()
     }
 
     val requirementExceptionHandler: ScraperRequirementExceptionHandler by lazy {

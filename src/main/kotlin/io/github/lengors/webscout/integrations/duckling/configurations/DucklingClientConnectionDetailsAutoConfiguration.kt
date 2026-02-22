@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 
 @AutoConfiguration
-class DucklingClientConnectionDetailsConfiguration {
+class DucklingClientConnectionDetailsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     fun ducklingClientConnectionDetails(ducklingClientProperties: DucklingClientProperties): DucklingClientConnectionDetails =

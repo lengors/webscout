@@ -8,7 +8,8 @@ import io.github.lengors.protoscout.domain.scrapers.specifications.models.Scrape
 import io.github.lengors.webscout.domain.events.models.EventListener
 import io.github.lengors.webscout.domain.jexl.models.JexlReference
 import io.github.lengors.webscout.domain.network.http.models.HttpRequest
-import io.github.lengors.webscout.domain.network.http.services.HttpStatefulClientBuilder
+import io.github.lengors.webscout.domain.network.http.services.HttpExchangerProvider
+import io.github.lengors.webscout.domain.network.http.services.HttpSessionProvider
 import io.github.lengors.webscout.domain.network.ssl.services.SslMaterialLoader
 import io.github.lengors.webscout.domain.scrapers.contexts.models.ScraperContext
 import io.github.lengors.webscout.domain.scrapers.contexts.models.ScraperExecutionContext
@@ -28,14 +29,12 @@ import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperS
 import io.github.lengors.webscout.domain.spring.scrapers.models.asHeaders
 import io.github.lengors.webscout.domain.spring.scrapers.specifications.models.asHeaders
 import io.github.lengors.webscout.domain.spring.scrapers.specifications.models.parse
-import io.github.lengors.webscout.domain.utilities.VirtualThreadPerTaskExecutor
 import io.github.lengors.webscout.domain.utilities.asMultiValueMap
 import io.github.lengors.webscout.domain.utilities.mapEachValue
 import io.github.lengors.webscout.domain.utilities.runCatching
 import io.github.lengors.webscout.integrations.duckling.client.DucklingClient
 import io.micrometer.core.instrument.kotlin.asContextElement
 import io.micrometer.observation.ObservationRegistry
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -59,7 +58,8 @@ class ScraperService(
     private val ducklingClient: DucklingClient,
     private val sslMaterialLoader: SslMaterialLoader,
     private val observationRegistry: ObservationRegistry,
-    private val httpStatefulClientBuilder: HttpStatefulClientBuilder,
+    private val httpSessionProvider: HttpSessionProvider,
+    private val httpExchangerProvider: HttpExchangerProvider,
     @Lazy private val self: ScraperService? = null,
 ) : EventListener<ScraperSpecificationPersistenceEvent> {
     companion object {
@@ -76,7 +76,7 @@ class ScraperService(
 
     @Cacheable("ScraperContexts", key = "#scraperSpecification.name")
     fun findScraperContext(scraperSpecification: ScraperSpecification): ScraperContext =
-        ScraperContext(computeScraperDefinition(scraperSpecification), httpStatefulClientBuilder)
+        ScraperContext(computeScraperDefinition(scraperSpecification), httpSessionProvider, httpExchangerProvider)
 
     override fun onEvent(event: ScraperSpecificationPersistenceEvent) {
         when (event) {
@@ -97,7 +97,7 @@ class ScraperService(
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Iterable<ScraperTask>) = scrap(scraperTasks.asFlow())
 
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Flow<ScraperTask>) =
-        withContext(observationRegistry.asContextElement() + Dispatchers.VirtualThreadPerTaskExecutor) {
+        withContext(observationRegistry.asContextElement()) {
             coroutineScope {
                 scraperTasks.collect {
                     launch { scrap(it) }
@@ -112,9 +112,9 @@ class ScraperService(
             runCatching(logger, context.requirementExceptionHandler) {
                 context.definition.requirements.associate { requirement ->
                     requirement.name to
-                        task.inputs
-                            .getOrDefault(requirement.name, requirement.default)
-                            .let(requirement::validate)
+                            task.inputs
+                                .getOrDefault(requirement.name, requirement.default)
+                                .let(requirement::validate)
                 }
             } ?: return
 
@@ -141,10 +141,10 @@ class ScraperService(
                         with(executionContext) {
                             context.definition.handlers.firstOrNull { handler ->
                                 handler.matches?.takeUnless { it.compute(Boolean::class).valueOrNull == true } == null &&
-                                    handler.requiresGates
-                                        .compute(String::class)
-                                        .mapNotNull { it.valueOrNull }
-                                        .let(gates::containsAll)
+                                        handler.requiresGates
+                                            .compute(String::class)
+                                            .mapNotNull { it.valueOrNull }
+                                            .let(gates::containsAll)
                             }
                         } ?: throw ScraperHandlerNotFoundException(context.definition.name)
                     } ?: return@coroutineScope
@@ -176,7 +176,7 @@ class ScraperService(
 
                     is ScraperDefinitionComputeAction ->
                         with(executionContext) {
-                            val mappedVaues =
+                            val mappedValues =
                                 runCatching(logger, context.computeMapsExpressionExceptionHandler) {
                                     handler.action.maps
                                         .compute()
@@ -208,7 +208,8 @@ class ScraperService(
                                                         requestAction.payload?.let { payload ->
                                                             payload.fields
                                                                 .associate {
-                                                                    val name = it.name.compute(String::class).valueOrNull
+                                                                    val name =
+                                                                        it.name.compute(String::class).valueOrNull
                                                                     val value = it.value.compute(Any::class).valueOrNull
                                                                     name to value?.toString()
                                                                 }.let {
@@ -218,26 +219,33 @@ class ScraperService(
                                                                     }
                                                                 }
                                                         }
+                                                    val requestHeaders = defaultHeaders
+                                                        .plus(headers)
+                                                        .plus(requestAction.payload?.type.asHeaders())
+                                                        .plus(requestAction.parser.asHeaders())
+                                                        .entries
+                                                        .mapNotNull { (key, value) ->
+                                                            value?.let { key to it }
+                                                        }
+                                                        .associate { it }
 
-                                                    HttpRequest(
-                                                        uri,
-                                                        requestAction.method,
-                                                        defaultHeaders + headers + requestAction.payload?.type.asHeaders() +
-                                                            requestAction.parser.asHeaders(),
-                                                        fields,
-                                                    )
+                                                    HttpRequest(uri, requestAction.method, requestHeaders, fields)
                                                 } ?: return@coroutineScope
 
                                             runCatching(logger, context.computeResponseExceptionHandler) {
-                                                val response = context.httpStatefulClient.exchange(httpRequest)
+                                                val response =
+                                                    context.httpExchanger.exchange(context.httpSession, httpRequest)
                                                 val responseBodyContext = branch(valueOrNull = response.body)
-                                                response.uri to requestAction.parser.parse(responseBodyContext)
+                                                response.uri to requestAction.parser.parse(
+                                                    responseBodyContext,
+                                                    response.headers
+                                                )
                                             } ?: return@coroutineScope
                                         }
                                 }
 
                             val requestValues = requestReference?.second?.valueOrNull?.let(::listOf) ?: emptyList()
-                            requestReference?.first to requestValues + mappedVaues
+                            requestReference?.first to requestValues + mappedValues
                         }.let { (uri, output) ->
                             scrap(
                                 executionContext.branch(

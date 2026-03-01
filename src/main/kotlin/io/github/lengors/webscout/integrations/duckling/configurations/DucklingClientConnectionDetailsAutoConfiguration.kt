@@ -10,7 +10,10 @@ import org.springframework.context.annotation.Bean
 @AutoConfiguration
 class DucklingClientConnectionDetailsAutoConfiguration {
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(
+        value = [DucklingClientConnectionDetails::class],
+        ignored = [DucklingClientConnectionDetailsProperties::class],
+    )
     fun ducklingClientConnectionDetails(ducklingClientProperties: DucklingClientProperties): DucklingClientConnectionDetails =
         DucklingClientConnectionDetailsProperties(ducklingClientProperties)
 }

@@ -6,5 +6,5 @@ data class HttpResponse(
     val uri: URI,
     val statusCode: Int,
     val body: String?,
-    val headers: Map<String, List<String>> = emptyMap()
+    val headers: Map<String, List<String>> = emptyMap(),
 )

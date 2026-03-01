@@ -17,23 +17,31 @@ data class JavaHttpSession private constructor(
 
     constructor() : this(headers = mutableMapOf())
 
-    override fun getCookies(uri: URI): Map<String, String> = cookieManager.cookieStore[uri].associate {
-        it.name to it.value
-    }
+    override fun getCookies(uri: URI): Map<String, String> =
+        cookieManager.cookieStore[uri].associate {
+            it.name to it.value
+        }
 
     override fun getHeaders(): Map<String, String> = headers
 
-    override fun setCookie(uri: URI, cookieName: String, cookieValue: String) {
+    override fun setCookie(
+        uri: URI,
+        cookieName: String,
+        cookieValue: String,
+    ) {
         cookieManager.cookieStore.add(uri, HttpCookie(cookieName, cookieValue))
     }
 
-    override fun setHeader(name: String, value: String) {
+    override fun setHeader(
+        name: String,
+        value: String,
+    ) {
         headers[name] = value
     }
 
     override fun update(
         uri: URI,
-        headers: Map<String, List<String>>
+        headers: Map<String, List<String>>,
     ) {
         runCatching { cookieManager.put(uri, headers) }
             .onFailure { logger.error("Failed to store state", it) }

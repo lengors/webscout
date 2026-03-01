@@ -10,10 +10,14 @@ import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResult
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultPrice
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultQuantity
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultStock
+import io.github.lengors.webscout.domain.jexl.models.JexlContextDateTimeAdapter
+import io.github.lengors.webscout.domain.jexl.models.JexlContextFunctionalAdapter
+import io.github.lengors.webscout.domain.jexl.models.JexlDateTimeAdapter
 import io.github.lengors.webscout.domain.jexl.models.JexlExecutionContext
-import io.github.lengors.webscout.domain.jexl.models.JexlReference
-import io.github.lengors.webscout.domain.jexl.models.value
-import io.github.lengors.webscout.domain.jexl.utilities.JexlStringUtilities
+import io.github.lengors.webscout.domain.jexl.models.JexlFunctionalAdapter
+import io.github.lengors.webscout.domain.jexl.models.JexlHttpSessionAdapter
+import io.github.lengors.webscout.domain.jexl.models.JexlSessionAdapter
+import io.github.lengors.webscout.domain.network.http.services.HttpSession
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnDetailAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnExtractDetailAction
 import io.github.lengors.webscout.domain.scrapers.models.ScraperDefinitionReturnExtractStockAction
@@ -31,40 +35,87 @@ import org.springframework.web.util.UriComponentsBuilder
 import java.time.ZoneId
 import java.util.Locale
 import kotlin.collections.flatMap
-import kotlin.reflect.safeCast
 
 @ConsistentCopyVisibility
 data class ScraperExecutionContext private constructor(
     private val jexlEngine: JexlEngine,
-    val ducklingClient: DucklingClient,
-    val objectMapper: ObjectMapper,
+    private val toolkitProvider: (ScraperExecutionContext) -> ScraperToolkit,
     val context: ScraperContext,
+    val httpSession: HttpSession,
     val searchTerm: String,
     val inputs: Map<String, String> = emptyMap(),
     val visitedHandlers: List<String> = emptyList(),
     val gates: Set<String> = emptySet(),
     val uri: UriComponents? = null,
-    override val valueOrNull: Any? = null,
-) : JexlExecutionContext,
-    JexlStringUtilities,
-    ScraperReference<Any> {
+    val value: Any? = null,
+) : JexlExecutionContext {
     private val jexlContext = ObjectContext(jexlEngine, this)
+
+    val datetime: JexlDateTimeAdapter
+        get() = JexlContextDateTimeAdapter(timezone)
+
+    val defaultUri: UriComponents by lazy {
+        context.definition.defaultUrl.computeUri()
+    }
+
+    val functional: JexlFunctionalAdapter = JexlContextFunctionalAdapter(this)
+
+    val locale: Locale by lazy {
+        context.definition.locale
+            .compute()
+            .let {
+                when (it) {
+                    is String -> Locale.forLanguageTag(it)
+                    is Locale -> it
+                    else -> throw IllegalArgumentException("Unsupported locale: $it")
+                }
+            }
+    }
+
+    val session: JexlSessionAdapter? by lazy {
+        uri?.toUri()?.let { JexlHttpSessionAdapter(httpSession, it) }
+    }
+
+    val timezone: ZoneId by lazy {
+        context.definition.timezone
+            .compute()
+            .let {
+                when (it) {
+                    is String -> ZoneId.of(it)
+                    is ZoneId -> it
+                    else -> throw IllegalArgumentException("Unsupported timezone: $it")
+                }
+            }
+    }
+
+    val toolkit: ScraperToolkit by lazy {
+        toolkitProvider(this)
+    }
 
     constructor(
         jexlEngine: JexlEngine,
         ducklingClient: DucklingClient,
         objectMapper: ObjectMapper,
         context: ScraperContext,
+        httpSession: HttpSession,
         searchTerm: String,
         inputs: Map<String, String> = emptyMap(),
-    ) : this(jexlEngine, ducklingClient, objectMapper, context, searchTerm, inputs, emptyList())
+    ) : this(
+        jexlEngine,
+        { ScraperContextToolkit(it, ducklingClient, objectMapper) },
+        context,
+        httpSession,
+        searchTerm,
+        inputs,
+        emptyList(),
+    )
 
     fun branch(
         visitedHandlerName: String? = null,
         openGates: List<JexlExpression> = emptyList(),
         closeGates: List<JexlExpression> = emptyList(),
         uri: UriComponents? = null,
-        valueOrNull: Any? = null,
+        value: Any? = null,
     ): ScraperExecutionContext =
         copy(
             visitedHandlers =
@@ -72,47 +123,32 @@ data class ScraperExecutionContext private constructor(
                     ?.let { visitedHandlers + it }
                     ?: visitedHandlers,
             gates =
-                gates +
-                    openGates
-                        .compute(String::class)
-                        .mapNotNull { it.valueOrNull }
-                        .toSet() -
-                    closeGates
-                        .compute(String::class)
-                        .mapNotNull { it.valueOrNull }
-                        .toSet(),
+                gates
+                    .plus(
+                        openGates
+                            .compute(String::class)
+                            .filterNotNull()
+                            .toSet(),
+                    ).minus(
+                        closeGates
+                            .compute(String::class)
+                            .filterNotNull()
+                            .toSet(),
+                    ),
             uri = uri ?: this.uri,
-            valueOrNull = valueOrNull,
+            value = value,
         )
 
-    fun JexlExpression.computeBrand(): String =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.brand()
-            .value
+    fun JexlExpression.computeBrand(): String = toolkit.brand(compute())!!
 
     suspend fun JexlExpression?.computeDateOrNull(): ScraperResponseResultDateTime? =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.date()
-            ?.valueOrNull
+        toolkit
+            .date(compute())
             ?.invoke()
 
-    fun JexlExpression?.computeDecibelsOrNull(): Int? =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.decibels()
-            ?.valueOrNull
+    fun JexlExpression?.computeDecibelsOrNull(): Int? = toolkit.decibels(compute())
 
-    fun JexlExpression?.computeDescription(): String =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.description()
-            .value
+    fun JexlExpression?.computeDescription(): String = toolkit.description(compute())!!
 
     fun ScraperDefinitionReturnExtractDetailAction.computeDetail(): ScraperResponseResultDetail? =
         name
@@ -144,36 +180,23 @@ data class ScraperExecutionContext private constructor(
 
                 is ScraperDefinitionReturnFlatDetailAction ->
                     detailAction.flattens
-                        .flatMap { it.compute(Iterable::class).valueOrNull ?: emptyList() }
+                        .flatMap { it.compute(Iterable::class) ?: emptyList() }
                         .flatMap { value ->
-                            with(branch(valueOrNull = value)) {
+                            with(branch(value = value)) {
                                 detailAction.extracts.computeDetails()
                             }
                         }
             }
         }
 
-    fun JexlExpression?.computeGradingOrNull(): ScraperResponseResultGrading? =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.grading()
-            ?.valueOrNull
+    fun JexlExpression?.computeGradingOrNull(): ScraperResponseResultGrading? = toolkit.grading(compute())
 
-    fun JexlExpression?.computeNoiseLevelOrNull(): ScraperResponseResultNoiseLevel? =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.noiseLevel()
-            ?.valueOrNull
+    fun JexlExpression?.computeNoiseLevelOrNull(): ScraperResponseResultNoiseLevel? = toolkit.noiseLevel(compute())
 
     suspend fun JexlExpression.computePrice(): ScraperResponseResultPrice =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.price()
-            .value
-            .invoke()
+        toolkit
+            .price(compute())
+            ?.invoke()
             ?.let {
                 ScraperResponseResultPrice(
                     it.number.doubleValueExact(),
@@ -181,12 +204,7 @@ data class ScraperExecutionContext private constructor(
                 )
             }!!
 
-    fun JexlExpression.computeQuantity(): ScraperResponseResultQuantity =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.quantity()
-            .value
+    fun JexlExpression.computeQuantity(): ScraperResponseResultQuantity = toolkit.quantity(compute())!!
 
     suspend fun ScraperDefinitionReturnExtractStockAction.computeStock(): ScraperResponseResultStock =
         ScraperResponseResultStock(
@@ -201,9 +219,9 @@ data class ScraperExecutionContext private constructor(
                 is ScraperDefinitionReturnExtractStockAction -> listOf(stockAction.computeStock())
                 is ScraperDefinitionReturnFlatStockAction ->
                     stockAction.flattens
-                        .flatMap { it.compute(Iterable::class).valueOrNull ?: emptyList() }
+                        .flatMap { it.compute(Iterable::class) ?: emptyList() }
                         .flatMap { value ->
-                            with(branch(valueOrNull = value)) {
+                            with(branch(value = value)) {
                                 stockAction.extracts.computeStocks()
                             }
                         }
@@ -211,49 +229,55 @@ data class ScraperExecutionContext private constructor(
         }
 
     fun JexlExpression?.computeTextOrNull(): String? =
-        this
-            .compute()
-            .text()
-            .valueOrNull
+        toolkit
+            .text(compute())
+            ?.takeIf(String::isNotBlank)
 
     fun ScraperDefinitionUrl.computeUri(defaultUri: UriComponents? = null): UriComponents =
         UriComponentsBuilder
             .newInstance()
             .let { defaultUri?.let(it::uriComponents) ?: it }
-            .let {
+            .let { builder ->
                 location
                     .computeUriOrNull()
-                    ?.let(it::uriComponents)
-                    ?: it
+                    ?.let { computedUri ->
+                        builder
+                            .let { if (computedUri.path != null) it.replacePath(null) else it }
+                            .let { if (computedUri.query != null) it.replaceQuery(null) else it }
+                            .uriComponents(computedUri)
+                    }
+                    ?: builder
             }.let {
                 scheme
                     .compute(String::class)
-                    .valueOrNull
                     ?.let(it::scheme)
                     ?: it
             }.let {
                 host
                     .compute(String::class)
-                    .valueOrNull
                     ?.let(it::host)
                     ?: it
-            }.let {
+            }.let { builder ->
                 path
                     .compute(String::class)
-                    .valueOrNull
-                    ?.let(it::path)
-                    ?: it
+                    ?.let { if (it.startsWith("/")) builder.replacePath(it) else builder.path(it) }
+                    ?: builder
             }.let { builder ->
                 parameters
                     ?.let { nonNullParameters ->
                         builder.replaceQueryParams(
                             CollectionUtils.toMultiValueMap(
                                 nonNullParameters
-                                    .map {
-                                        it.key.compute(String::class).value to
-                                            it.value
-                                                .compute(String::class)
-                                                .map(JexlReference<String>::valueOrNull)
+                                    .map { (key, value) ->
+                                        val computedKey =
+                                            key
+                                                .compute()
+                                                ?.toString()
+                                        val computedValue =
+                                            value
+                                                .compute()
+                                                .mapNotNull { it?.toString() }
+                                        computedKey to computedValue
                                     }.toMap(),
                             ),
                         )
@@ -261,59 +285,21 @@ data class ScraperExecutionContext private constructor(
                     ?: builder
             }.build()
 
-    fun JexlExpression?.computeUri(): JexlReference<UriComponents>? =
-        this
-            .compute()
-            .let(ScraperReference::class::safeCast)
-            ?.uri()
-
-    fun JexlExpression?.computeUriOrNull(): UriComponents? = computeUri()?.valueOrNull
+    fun JexlExpression?.computeUriOrNull(): UriComponents? = toolkit.uri(compute())
 
     fun JexlExpression?.computeUriStringOrNull(): String? =
-        this
-            .computeUri()
-            ?.string()
-            ?.valueOrNull
-
-    override val executionContext: ScraperExecutionContext
-        get() = this
+        computeUriOrNull()
+            ?.let(toolkit::str)
+            ?.takeIf(String::isNotBlank)
 
     override fun get(name: String?): Any? = jexlContext[name]
 
     override fun has(name: String?): Boolean = jexlContext.has(name)
-
-    val locale: Locale by lazy {
-        context.definition.locale
-            .compute()
-            .value
-            .let {
-                when (it) {
-                    is String -> Locale.forLanguageTag(it)
-                    is Locale -> it
-                    else -> throw IllegalArgumentException("Unsupported locale: $it")
-                }
-            }
-    }
-
-    override fun <T : Any> makeReference(valueOrNull: T?): ScraperReference<T> = ScraperObject(this, valueOrNull)
 
     override fun set(
         name: String?,
         value: Any?,
     ) {
         jexlContext[name] = value
-    }
-
-    val timezone: ZoneId by lazy {
-        context.definition.timezone
-            .compute()
-            .value
-            .let {
-                when (it) {
-                    is String -> ZoneId.of(it)
-                    is ZoneId -> it
-                    else -> throw IllegalArgumentException("Unsupported timezone: $it")
-                }
-            }
     }
 }

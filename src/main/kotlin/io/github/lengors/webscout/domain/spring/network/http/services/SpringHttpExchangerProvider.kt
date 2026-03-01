@@ -22,6 +22,6 @@ class SpringHttpExchangerProvider(
             httpExchangerProperties,
             httpRequestInterceptors,
             httpResponseInterceptors,
-            sslMaterial
+            sslMaterial,
         )
 }

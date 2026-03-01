@@ -9,6 +9,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration(proxyBeanMethods = false)
 class JavaHttpSessionProviderConfiguration {
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(value = [HttpSessionProvider::class], ignored = [JavaHttpSessionProvider::class])
     fun httpSessionProvider(): HttpSessionProvider = JavaHttpSessionProvider()
 }

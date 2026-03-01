@@ -1,7 +1,6 @@
 package io.github.lengors.webscout.domain.spring.scrapers.specifications.models
 
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationRequestParser
-import io.github.lengors.webscout.domain.jexl.models.JexlReference
 import io.github.lengors.webscout.domain.scrapers.contexts.models.ScraperExecutionContext
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -23,7 +22,7 @@ val ScraperSpecificationRequestParser.mediaType: MediaType?
 fun ScraperSpecificationRequestParser.parse(
     executionContext: ScraperExecutionContext,
     headers: Map<String, List<String>>? = null,
-): JexlReference<Any> =
+): Any? =
     when (this) {
         ScraperSpecificationRequestParser.AUTO ->
             when (
@@ -36,7 +35,7 @@ fun ScraperSpecificationRequestParser.parse(
                 else -> ScraperSpecificationRequestParser.TEXT
             }.parse(executionContext)
 
-        ScraperSpecificationRequestParser.HTML -> executionContext.html()
-        ScraperSpecificationRequestParser.JSON -> executionContext.json()
-        ScraperSpecificationRequestParser.TEXT -> executionContext.text()
+        ScraperSpecificationRequestParser.HTML -> executionContext.toolkit.html(executionContext.value)
+        ScraperSpecificationRequestParser.JSON -> executionContext.toolkit.json(executionContext.value)
+        ScraperSpecificationRequestParser.TEXT -> executionContext.toolkit.str(executionContext.value)
     }

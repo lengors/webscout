@@ -2,10 +2,11 @@ package io.github.lengors.webscout.domain.network.http.models
 
 import java.net.URI
 
-private val DEFAULT_PORTS = mapOf(
-    "http" to 80,
-    "https" to 443
-)
+private val DEFAULT_PORTS =
+    mapOf(
+        "http" to 80,
+        "https" to 443,
+    )
 
 fun URI.isSameOrigin(target: URI): Boolean {
     if (host != target.host) {

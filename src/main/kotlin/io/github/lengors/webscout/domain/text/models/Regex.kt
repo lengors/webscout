@@ -1,15 +1,15 @@
-package io.github.lengors.webscout.domain.utilities
+package io.github.lengors.webscout.domain.text.models
 
 val Regex.Companion.decibels: Regex by lazy {
     Regex("(\\d+)\\s*([dD][bB])?")
 }
 
 val Regex.Companion.grading: Regex by lazy {
-    Regex("[A-E1-5a-e]")
+    Regex("[A-G1-7a-g]")
 }
 
 val Regex.Companion.noiseLevel: Regex by lazy {
-    Regex("[A-C1-3a-c]")
+    Regex("([^A-Za-z]+|^)(?<gradingletter>[A-Ca-c])([^A-Za-z]+|$)|([^0-9]+|^)(?<gradingnumber>[1-3])([^0-9]+|$)")
 }
 
 val Regex.Companion.quantity: Regex by lazy {

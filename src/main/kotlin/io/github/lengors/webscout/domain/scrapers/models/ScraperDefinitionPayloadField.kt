@@ -6,7 +6,7 @@ import org.apache.commons.jexl3.JexlEngine
 import org.apache.commons.jexl3.JexlExpression
 
 @ConsistentCopyVisibility
-data class ScraperSpecificationPayloadField private constructor(
+data class ScraperDefinitionPayloadField private constructor(
     val name: JexlExpression,
     val value: JexlExpression,
 ) {

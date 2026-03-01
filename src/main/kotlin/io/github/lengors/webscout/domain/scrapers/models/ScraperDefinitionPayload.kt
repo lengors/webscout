@@ -8,7 +8,7 @@ import org.apache.commons.jexl3.JexlEngine
 @ConsistentCopyVisibility
 data class ScraperDefinitionPayload private constructor(
     val type: ScraperDefinitionPayloadType,
-    val fields: List<ScraperSpecificationPayloadField> = emptyList(),
+    val fields: List<ScraperDefinitionPayloadField> = emptyList(),
 ) {
     constructor(
         specification: ScraperSpecificationPayload,
@@ -21,6 +21,6 @@ data class ScraperDefinitionPayload private constructor(
         when (specification) {
             is ScraperSpecificationDataPayload -> specification.data
             is ScraperSpecificationJsonPayload -> specification.json
-        }.map { ScraperSpecificationPayloadField(it, jexlEngine) },
+        }.map { ScraperDefinitionPayloadField(it, jexlEngine) },
     )
 }

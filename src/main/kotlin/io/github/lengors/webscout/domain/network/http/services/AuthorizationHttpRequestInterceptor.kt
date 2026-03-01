@@ -8,12 +8,17 @@ import org.springframework.stereotype.Component
 class AuthorizationHttpRequestInterceptor : HttpRequestInterceptor {
     override fun intercept(
         request: HttpRequest,
-        session: HttpSession
-    ): HttpRequest = request.copy(
-        headers = request.headers + mapOf(
-            HttpHeaders.AUTHORIZATION to (request.headers[HttpHeaders.AUTHORIZATION]
-                ?.also { session.setHeader(HttpHeaders.AUTHORIZATION, it) }
-                ?: session.getHeader(HttpHeaders.AUTHORIZATION))
+        session: HttpSession,
+    ): HttpRequest =
+        request.copy(
+            headers =
+                request.headers +
+                    mapOf(
+                        HttpHeaders.AUTHORIZATION to (
+                            request.headers[HttpHeaders.AUTHORIZATION]
+                                ?.also { session.setHeader(HttpHeaders.AUTHORIZATION, it) }
+                                ?: session.getHeader(HttpHeaders.AUTHORIZATION)
+                        ),
+                    ),
         )
-    )
 }

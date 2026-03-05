@@ -1,6 +1,7 @@
 package io.github.lengors.webscout.integrations.duckling.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.lengors.webscout.domain.exceptions.findInStackTrace
 import io.github.lengors.webscout.domain.utilities.asMultiValueMap
 import io.github.lengors.webscout.integrations.duckling.models.DucklingRequest
 import io.github.lengors.webscout.integrations.duckling.models.DucklingResponse
@@ -11,6 +12,9 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.netty.http.client.PrematureCloseException
+import reactor.util.retry.Retry
+import java.time.Duration
 
 @Component
 class DucklingClient(
@@ -36,6 +40,10 @@ class DucklingClient(
             .bodyValue(objectMapper.asMultiValueMap(request))
             .retrieve()
             .bodyToFlux(request.responseType.java)
-            .asFlow()
+            .retryWhen(
+                Retry
+                    .backoff(3, Duration.ofMillis(500))
+                    .filter { it.findInStackTrace<PrematureCloseException>() != null },
+            ).asFlow()
             .toList()
 }

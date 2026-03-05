@@ -5,6 +5,7 @@ import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponse
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResult
 import io.github.lengors.protoscout.domain.scrapers.models.ScraperResponseResultBrand
 import io.github.lengors.webscout.domain.network.http.models.HttpRequest
+import io.github.lengors.webscout.domain.observation.suspendableObserve
 import io.github.lengors.webscout.domain.scrapers.contexts.models.ScraperExecutionContext
 import io.github.lengors.webscout.domain.scrapers.contexts.services.ScraperContextManager
 import io.github.lengors.webscout.domain.scrapers.exceptions.models.ScraperHandlerNotFoundException
@@ -23,6 +24,7 @@ import io.github.lengors.webscout.domain.utilities.asMultiValueMap
 import io.github.lengors.webscout.domain.utilities.runCatching
 import io.github.lengors.webscout.integrations.duckling.client.DucklingClient
 import io.micrometer.core.instrument.kotlin.asContextElement
+import io.micrometer.observation.Observation
 import io.micrometer.observation.ObservationRegistry
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
@@ -96,29 +98,32 @@ class ScraperService(
         }?.let { scrap(it) }
     }
 
-    private suspend fun SendChannel<ScraperResponse>.scrap(executionContext: ScraperExecutionContext) {
-        val context = executionContext.context
-        val handler =
-            runCatching(logger, context.handlerExceptionHandler) {
-                with(executionContext) {
-                    context.definition.handlers.firstOrNull { handler ->
-                        handler.requiresGates
-                            .compute(String::class)
-                            .filterNotNull()
-                            .let(gates::containsAll) &&
-                            handler.matches?.takeUnless { it.compute(Boolean::class) == true } == null
-                    }
-                } ?: throw ScraperHandlerNotFoundException(context.definition.name)
-            } ?: return
+    private suspend fun SendChannel<ScraperResponse>.scrap(executionContext: ScraperExecutionContext) =
+        Observation
+            .createNotStarted("scrap", observationRegistry)
+            .suspendableObserve {
+                val context = executionContext.context
+                val handler =
+                    runCatching(logger, context.handlerExceptionHandler) {
+                        with(executionContext) {
+                            context.definition.handlers.firstOrNull { handler ->
+                                handler.requiresGates
+                                    .compute(String::class)
+                                    .filterNotNull()
+                                    .let(gates::containsAll) &&
+                                    handler.matches?.takeUnless { it.compute(Boolean::class) == true } == null
+                            }
+                        } ?: throw ScraperHandlerNotFoundException(context.definition.name)
+                    } ?: return@suspendableObserve
 
-        logger.info("Scraper handler: (name={})", handler.name)
+                logger.info("Scraper handler: (name={})", handler.name)
 
-        return when (handler.action) {
-            is ScraperDefinitionFlatAction -> scrap(executionContext, handler, handler.action)
-            is ScraperDefinitionComputeAction -> scrap(executionContext, handler, handler.action)
-            is ScraperDefinitionReturnAction -> scrap(executionContext, handler, handler.action)
-        }
-    }
+                when (handler.action) {
+                    is ScraperDefinitionFlatAction -> scrap(executionContext, handler, handler.action)
+                    is ScraperDefinitionComputeAction -> scrap(executionContext, handler, handler.action)
+                    is ScraperDefinitionReturnAction -> scrap(executionContext, handler, handler.action)
+                }
+            }
 
     private suspend fun SendChannel<ScraperResponse>.scrap(
         executionContext: ScraperExecutionContext,

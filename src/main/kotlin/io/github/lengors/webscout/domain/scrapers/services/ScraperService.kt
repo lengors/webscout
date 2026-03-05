@@ -182,11 +182,15 @@ class ScraperService(
                                                     .associate {
                                                         val name = it.name.compute(String::class)
                                                         val value = it.value.compute(Any::class)
-                                                        name to value?.toString()
-                                                    }.let {
+                                                        name to value
+                                                    }.let { computedPayload ->
                                                         when (payload.type) {
-                                                            ScraperDefinitionPayloadType.DATA -> it.asMultiValueMap()
-                                                            ScraperDefinitionPayloadType.JSON -> it
+                                                            ScraperDefinitionPayloadType.DATA ->
+                                                                computedPayload
+                                                                    .mapValues { it.value?.toString() }
+                                                                    .asMultiValueMap()
+
+                                                            ScraperDefinitionPayloadType.JSON -> computedPayload
                                                         }
                                                     }
                                             }

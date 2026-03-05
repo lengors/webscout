@@ -51,6 +51,7 @@ class JexlConfiguration {
             .compose("org.springframework.util.*")
             .compose("org.springframework.web.util.*")
             .compose("io.github.lengors.webscout.domain.functional.async.*")
+            .compose("io.github.lengors.webscout.domain.jexl.namespaces.*")
             .compose("io.github.lengors.webscout.domain.scrapers.contexts.models.*")
             .compose("io.github.lengors.webscout.domain.jexl.models.*")
             .compose("org.jsoup.nodes.*")

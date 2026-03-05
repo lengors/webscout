@@ -22,12 +22,15 @@ import io.github.lengors.webscout.domain.spring.scrapers.specifications.models.p
 import io.github.lengors.webscout.domain.utilities.asMultiValueMap
 import io.github.lengors.webscout.domain.utilities.runCatching
 import io.github.lengors.webscout.integrations.duckling.client.DucklingClient
+import io.micrometer.core.instrument.kotlin.asContextElement
+import io.micrometer.observation.ObservationRegistry
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.apache.commons.jexl3.JexlEngine
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -39,6 +42,7 @@ class ScraperService(
     private val jexlEngine: JexlEngine,
     private val objectMapper: ObjectMapper,
     private val ducklingClient: DucklingClient,
+    private val observationRegistry: ObservationRegistry,
     private val scraperContextManager: ScraperContextManager,
     private val scraperHttpSessionManager: ScraperHttpSessionManager,
 ) {
@@ -56,15 +60,12 @@ class ScraperService(
 
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Iterable<ScraperTask>) = scrap(scraperTasks.asFlow())
 
-    // TODO: Remove
     suspend fun SendChannel<ScraperResponse>.scrap(scraperTasks: Flow<ScraperTask>) =
-        // withContext(observationRegistry.asContextElement()) {
-        coroutineScope {
+        withContext(observationRegistry.asContextElement()) {
             scraperTasks.collect {
                 launch { scrap(it) }
             }
         }
-    // }
 
     private suspend fun SendChannel<ScraperResponse>.scrap(task: ScraperTask) {
         val context = scraperContextManager.getScraperContext(task.specification)
@@ -95,31 +96,29 @@ class ScraperService(
         }?.let { scrap(it) }
     }
 
-    private suspend fun SendChannel<ScraperResponse>.scrap(executionContext: ScraperExecutionContext): Unit =
-        // withContext(observationRegistry.asContextElement())
-        coroutineScope {
-            val context = executionContext.context
-            val handler =
-                runCatching(logger, context.handlerExceptionHandler) {
-                    with(executionContext) {
-                        context.definition.handlers.firstOrNull { handler ->
-                            handler.requiresGates
-                                .compute(String::class)
-                                .filterNotNull()
-                                .let(gates::containsAll) &&
-                                handler.matches?.takeUnless { it.compute(Boolean::class) == true } == null
-                        }
-                    } ?: throw ScraperHandlerNotFoundException(context.definition.name)
-                } ?: return@coroutineScope
+    private suspend fun SendChannel<ScraperResponse>.scrap(executionContext: ScraperExecutionContext) {
+        val context = executionContext.context
+        val handler =
+            runCatching(logger, context.handlerExceptionHandler) {
+                with(executionContext) {
+                    context.definition.handlers.firstOrNull { handler ->
+                        handler.requiresGates
+                            .compute(String::class)
+                            .filterNotNull()
+                            .let(gates::containsAll) &&
+                            handler.matches?.takeUnless { it.compute(Boolean::class) == true } == null
+                    }
+                } ?: throw ScraperHandlerNotFoundException(context.definition.name)
+            } ?: return
 
-            logger.info("Scraper handler: (name={})", handler.name)
+        logger.info("Scraper handler: (name={})", handler.name)
 
-            when (handler.action) {
-                is ScraperDefinitionFlatAction -> scrap(executionContext, handler, handler.action)
-                is ScraperDefinitionComputeAction -> scrap(executionContext, handler, handler.action)
-                is ScraperDefinitionReturnAction -> scrap(executionContext, handler, handler.action)
-            }
+        return when (handler.action) {
+            is ScraperDefinitionFlatAction -> scrap(executionContext, handler, handler.action)
+            is ScraperDefinitionComputeAction -> scrap(executionContext, handler, handler.action)
+            is ScraperDefinitionReturnAction -> scrap(executionContext, handler, handler.action)
         }
+    }
 
     private suspend fun SendChannel<ScraperResponse>.scrap(
         executionContext: ScraperExecutionContext,

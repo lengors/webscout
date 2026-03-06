@@ -1,3 +1,14 @@
+# [v1.0.0-dev.12](https://github.com/lengors/webscout/compare/1.0.0-dev.11...1.0.0-dev.12) (2026-03-06)
+
+## ✨ New Features
+- [`30b33d0a`](https://github.com/lengors/webscout/commit/30b33d0a)  Add support for multiple response dimensions per duckling request 
+- [`3da1886a`](https://github.com/lengors/webscout/commit/3da1886a)  Add retry logic for duckling 
+
+## 🐛 Bug Fixes
+- [`7e47ef95`](https://github.com/lengors/webscout/commit/7e47ef95)  Fix tracing on scraping 
+- [`a87301ab`](https://github.com/lengors/webscout/commit/a87301ab)  Fix fields generation on scraping request 
+- [`20b3ab04`](https://github.com/lengors/webscout/commit/20b3ab04)  Fix missing Jexl permissions for namespaces
+
 # [v1.0.0-dev.11](https://github.com/lengors/webscout/compare/1.0.0-dev.10...1.0.0-dev.11) (2025-12-28)
 
 ## 🐛 Bug Fixes

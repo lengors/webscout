@@ -6,5 +6,6 @@ data class HttpRequest(
     val uri: URI,
     val method: HttpMethod,
     val headers: Map<String, String?> = emptyMap(),
-    val body: Map<String, List<String?>>? = null,
+    val body: Any? = null,
+    val cookies: Map<String, String?> = emptyMap(),
 )

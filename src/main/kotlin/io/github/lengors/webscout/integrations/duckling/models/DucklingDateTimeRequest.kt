@@ -15,10 +15,7 @@ data class DucklingDateTimeRequest(
     override val locale: Locale? = null,
     @JsonProperty(DucklingRequest.TIMEZONE)
     override val timezone: ZoneId? = null,
-) : DucklingRequest<DucklingDateTimeDimension, DucklingDateTimeResponse> {
+) : DucklingRequest<DucklingDateTimeLikeResponse> {
     @JsonIgnore
-    override val dimension: DucklingDateTimeDimension = DucklingDateTimeDimension
-
-    @JsonIgnore
-    override val responseType: KClass<DucklingDateTimeResponse> = DucklingDateTimeResponse::class
+    override val responseType: KClass<DucklingDateTimeLikeResponse> = DucklingDateTimeLikeResponse::class
 }

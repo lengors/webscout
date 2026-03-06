@@ -1,22 +1,24 @@
 package io.github.lengors.webscout.integrations.duckling.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.lengors.webscout.domain.exceptions.findInStackTrace
 import io.github.lengors.webscout.domain.utilities.asMultiValueMap
-import io.github.lengors.webscout.integrations.duckling.models.DucklingDimension
 import io.github.lengors.webscout.integrations.duckling.models.DucklingRequest
 import io.github.lengors.webscout.integrations.duckling.models.DucklingResponse
 import io.github.lengors.webscout.integrations.duckling.properties.DucklingClientConnectionDetails
-import org.springframework.boot.web.client.RestTemplateBuilder
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.stereotype.Component
-import org.springframework.web.client.RestTemplate
-import kotlin.reflect.cast
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.netty.http.client.PrematureCloseException
+import reactor.util.retry.Retry
+import java.time.Duration
 
 @Component
 class DucklingClient(
-    restTemplateBuilder: RestTemplateBuilder,
+    webClientBuilder: WebClient.Builder,
     ducklingClientConnectionDetails: DucklingClientConnectionDetails,
     private val objectMapper: ObjectMapper,
 ) {
@@ -24,21 +26,24 @@ class DucklingClient(
         const val PARSE_ENDPOINT = "/parse"
     }
 
-    private val restTemplate: RestTemplate by lazy {
-        restTemplateBuilder
-            .requestFactory(JdkClientHttpRequestFactory::class.java)
-            .rootUri(ducklingClientConnectionDetails.url)
+    private val webClient: WebClient =
+        webClientBuilder
+            .clone()
+            .baseUrl(ducklingClientConnectionDetails.url)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .build()
-    }
 
-    fun <T : DucklingDimension, U : DucklingResponse<T, *>, V : DucklingRequest<T, U>> parse(request: V): U? =
-        restTemplate
-            .postForObject(
-                PARSE_ENDPOINT,
-                objectMapper.asMultiValueMap(request),
-                request.responseType.java.arrayType(),
-            )?.let(Array::class::cast)
-            ?.firstOrNull()
-            ?.let(request.responseType::cast)
+    suspend fun <T : DucklingResponse, U : DucklingRequest<T>> parse(request: U): List<T> =
+        webClient
+            .post()
+            .uri(PARSE_ENDPOINT)
+            .bodyValue(objectMapper.asMultiValueMap(request))
+            .retrieve()
+            .bodyToFlux(request.responseType.java)
+            .retryWhen(
+                Retry
+                    .backoff(3, Duration.ofMillis(500))
+                    .filter { it.findInStackTrace<PrematureCloseException>() != null },
+            ).asFlow()
+            .toList()
 }

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class DucklingDateTimeResponse(
     @JsonProperty(DucklingResponse.VALUE)
     override val value: DucklingDateTimeResponseValue,
-) : DucklingResponse<DucklingDateTimeDimension, DucklingDateTimeResponseValue> {
+) : DucklingDateTimeLikeResponse {
     @JsonProperty(DucklingResponse.DIMENSION)
     override val dimension: DucklingDateTimeDimension = DucklingDateTimeDimension
 }

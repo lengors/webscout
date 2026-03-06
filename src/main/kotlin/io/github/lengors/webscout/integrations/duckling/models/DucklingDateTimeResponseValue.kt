@@ -10,4 +10,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(DucklingDateTimeInstantResponseValue::class),
     JsonSubTypes.Type(DucklingDateTimeRangeResponseValue::class),
 )
-sealed interface DucklingDateTimeResponseValue : DucklingResponseValue
+sealed interface DucklingDateTimeResponseValue : DucklingDateTimeLikeResponseValue

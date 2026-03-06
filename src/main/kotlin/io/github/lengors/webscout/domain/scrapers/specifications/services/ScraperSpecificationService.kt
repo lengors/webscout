@@ -5,7 +5,7 @@ import io.github.lengors.webscout.domain.events.services.EventPublisher
 import io.github.lengors.webscout.domain.persistence.exceptions.models.EntityConflictException
 import io.github.lengors.webscout.domain.persistence.exceptions.models.EntityNotFoundException
 import io.github.lengors.webscout.domain.persistence.services.UniqueKeyPersistenceService
-import io.github.lengors.webscout.domain.scrapers.services.ScraperService
+import io.github.lengors.webscout.domain.scrapers.services.ScraperDefinitionProvider
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityBatchDeletedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityCreatedEvent
 import io.github.lengors.webscout.domain.scrapers.specifications.events.ScraperSpecificationEntityDeletedEvent
@@ -21,15 +21,14 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ScraperSpecificationService(
     private val eventPublisher: EventPublisher,
+    private val scraperDefinitionProvider: ScraperDefinitionProvider,
     private val scraperSpecificationRepository: ScraperSpecificationRepository,
-    @Lazy private val scraperService: ScraperService,
 ) : UniqueKeyPersistenceService<ScraperSpecification> {
     override suspend fun delete(key: String): ScraperSpecification =
         scraperSpecificationRepository
@@ -92,7 +91,7 @@ class ScraperSpecificationService(
                 throw ScraperInvalidSpecificationNameException(data.name, exception)
             }
         }
-        return runCatching { scraperService.computeScraperDefinition(data) }
+        return runCatching { scraperDefinitionProvider.provide(data) }
             .recoverCatching { throw ScraperInvalidSpecificationException(data, it) }
             .map {
                 scraperSpecificationRepository
@@ -107,7 +106,7 @@ class ScraperSpecificationService(
 
     @Transactional
     override suspend fun update(data: ScraperSpecification): ScraperSpecification =
-        runCatching { scraperService.computeScraperDefinition(data) }
+        runCatching { scraperDefinitionProvider.provide(data) }
             .recoverCatching { throw ScraperInvalidSpecificationException(data, it) }
             .map {
                 scraperSpecificationRepository

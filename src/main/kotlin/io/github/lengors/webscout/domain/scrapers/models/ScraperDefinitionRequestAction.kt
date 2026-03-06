@@ -26,7 +26,7 @@ data class ScraperDefinitionRequestAction private constructor(
             specification.requests.method.name
                 .uppercase(),
         ),
-        specification.requests.parser,
+        specification.requests.parser ?: ScraperSpecificationRequestParser.AUTO,
         specification.requests.payload?.let { ScraperDefinitionPayload(it, jexlEngine) },
         specification.requests.headers
             ?.additionalProperties

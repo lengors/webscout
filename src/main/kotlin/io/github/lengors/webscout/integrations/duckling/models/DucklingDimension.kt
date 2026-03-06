@@ -13,6 +13,8 @@ sealed interface DucklingDimension {
             setOf(
                 DucklingAmountOfMoneyDimension,
                 DucklingDateTimeDimension,
+                DucklingDurationDimension,
+                DucklingNumberDimension,
             ).associateBy(Any::toString)
     }
 }

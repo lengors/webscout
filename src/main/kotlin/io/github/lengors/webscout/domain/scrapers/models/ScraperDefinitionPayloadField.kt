@@ -1,0 +1,20 @@
+package io.github.lengors.webscout.domain.scrapers.models
+
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationPayloadEntry
+import io.github.lengors.webscout.domain.jexl.services.createExpression
+import org.apache.commons.jexl3.JexlEngine
+import org.apache.commons.jexl3.JexlExpression
+
+@ConsistentCopyVisibility
+data class ScraperDefinitionPayloadField private constructor(
+    val name: JexlExpression,
+    val value: JexlExpression,
+) {
+    constructor(
+        specification: ScraperSpecificationPayloadEntry,
+        jexlEngine: JexlEngine,
+    ) : this(
+        jexlEngine.createExpression(specification.name),
+        jexlEngine.createExpression(specification.value),
+    )
+}

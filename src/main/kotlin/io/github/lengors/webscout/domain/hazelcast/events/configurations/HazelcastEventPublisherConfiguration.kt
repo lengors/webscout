@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration(proxyBeanMethods = false)
 class HazelcastEventPublisherConfiguration {
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(value = [EventPublisher::class], ignored = [HazelcastEventPublisher::class])
     fun eventPublisher(
         hazelcastInstance: HazelcastInstance,
         eventListeners: Collection<EventListener<*>>,

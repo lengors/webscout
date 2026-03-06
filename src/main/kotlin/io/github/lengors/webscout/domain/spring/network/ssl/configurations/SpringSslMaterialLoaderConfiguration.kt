@@ -9,6 +9,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration(proxyBeanMethods = false)
 class SpringSslMaterialLoaderConfiguration {
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(value = [SslMaterialLoader::class], ignored = [SpringSslMaterialLoader::class])
     fun sslMaterialLoader(): SslMaterialLoader = SpringSslMaterialLoader()
 }

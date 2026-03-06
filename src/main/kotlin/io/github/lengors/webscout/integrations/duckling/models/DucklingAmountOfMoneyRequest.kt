@@ -15,10 +15,7 @@ data class DucklingAmountOfMoneyRequest(
     override val locale: Locale? = null,
     @JsonProperty(DucklingRequest.TIMEZONE)
     override val timezone: ZoneId? = null,
-) : DucklingRequest<DucklingAmountOfMoneyDimension, DucklingAmountOfMoneyResponse> {
+) : DucklingRequest<DucklingAmountOfMoneyLikeResponse> {
     @JsonIgnore
-    override val dimension: DucklingAmountOfMoneyDimension = DucklingAmountOfMoneyDimension
-
-    @JsonIgnore
-    override val responseType: KClass<DucklingAmountOfMoneyResponse> = DucklingAmountOfMoneyResponse::class
+    override val responseType: KClass<DucklingAmountOfMoneyLikeResponse> = DucklingAmountOfMoneyLikeResponse::class
 }

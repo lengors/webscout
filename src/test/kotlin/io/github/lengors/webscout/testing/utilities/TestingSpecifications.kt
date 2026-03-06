@@ -8,7 +8,7 @@ import io.github.lengors.protoscout.domain.scrapers.specifications.models.Scrape
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationHandler
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationJexlExpression
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationJsonPayload
-import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationPayloadMap
+import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationPayloadEntry
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationRequest
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationRequestAction
 import io.github.lengors.protoscout.domain.scrapers.specifications.models.ScraperSpecificationRequestMethod
@@ -89,7 +89,7 @@ object TestingSpecifications {
                             if (payloadType != null) ScraperSpecificationRequestMethod.POST else ScraperSpecificationRequestMethod.GET,
                             null,
                             payloadType?.let {
-                                val payload = ScraperSpecificationPayloadMap()
+                                val payload = listOf<ScraperSpecificationPayloadEntry>()
                                 when (it) {
                                     ScraperDefinitionPayloadType.DATA -> ScraperSpecificationDataPayload(payload)
                                     ScraperDefinitionPayloadType.JSON -> ScraperSpecificationJsonPayload(payload)
@@ -109,12 +109,14 @@ object TestingSpecifications {
                         listOf(ScraperSpecificationJexlExpression("'table'")),
                     ),
                     ScraperSpecificationFlatAction(
-                        ScraperSpecificationJexlExpression(
-                            when (requestParser) {
-                                ScraperSpecificationRequestParser.HTML -> "selectAll('//tr')"
-                                ScraperSpecificationRequestParser.JSON -> "selectAll('/rows')"
-                                ScraperSpecificationRequestParser.TEXT -> ""
-                            },
+                        listOf(
+                            ScraperSpecificationJexlExpression(
+                                when (requestParser) {
+                                    ScraperSpecificationRequestParser.HTML -> "toolkit.selectAll('//tr')"
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.selectAll('/rows')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
+                                },
+                            ),
                         ),
                     ),
                 ),
@@ -130,117 +132,121 @@ object TestingSpecifications {
                         ScraperSpecificationReturn(
                             ScraperSpecificationJexlExpression(
                                 when (requestParser) {
-                                    ScraperSpecificationRequestParser.HTML -> "select('.//td[contains(@class, \\'description\\')]')"
-                                    ScraperSpecificationRequestParser.JSON -> "select('/description')"
-                                    ScraperSpecificationRequestParser.TEXT -> ""
+                                    ScraperSpecificationRequestParser.HTML -> "toolkit.select('.//td[contains(@class, \\'description\\')]')"
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/description')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                 },
                             ),
                             ScraperSpecificationReturnBrand(
                                 ScraperSpecificationJexlExpression(
                                     when (requestParser) {
                                         ScraperSpecificationRequestParser.HTML ->
-                                            "select('.//td[contains(@class, \\'brand\\')]')"
+                                            "toolkit.select('.//td[contains(@class, \\'brand\\')]')"
 
-                                        ScraperSpecificationRequestParser.JSON -> "select('/brand')"
-                                        ScraperSpecificationRequestParser.TEXT -> ""
+                                        ScraperSpecificationRequestParser.JSON -> "toolkit.select('/brand')"
+                                        ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                     },
                                 ),
                                 ScraperSpecificationJexlExpression(
                                     when (requestParser) {
                                         ScraperSpecificationRequestParser.HTML ->
-                                            "select('.//td[contains(@class, \\'brandImage\\')]/a').attr('href')"
+                                            "toolkit.attr(toolkit.select('.//td[contains(@class, \\'brandImage\\')]/a'), 'href')"
 
-                                        ScraperSpecificationRequestParser.JSON -> "select('/brandImage')"
-                                        ScraperSpecificationRequestParser.TEXT -> ""
+                                        ScraperSpecificationRequestParser.JSON -> "toolkit.select('/brandImage')"
+                                        ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                     },
                                 ),
                             ),
                             ScraperSpecificationJexlExpression(
                                 when (requestParser) {
                                     ScraperSpecificationRequestParser.HTML ->
-                                        "select('.//td[contains(@class, \\'price\\')]')"
+                                        "toolkit.select('.//td[contains(@class, \\'price\\')]')"
 
-                                    ScraperSpecificationRequestParser.JSON -> "select('/price')"
-                                    ScraperSpecificationRequestParser.TEXT -> ""
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/price')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                 },
                             ),
                             ScraperSpecificationJexlExpression(
                                 when (requestParser) {
                                     ScraperSpecificationRequestParser.HTML ->
-                                        "select('.//td[contains(@class, \\'image\\')]/a').attr('href')"
+                                        "toolkit.attr(toolkit.select('.//td[contains(@class, \\'image\\')]/a'), 'href')"
 
-                                    ScraperSpecificationRequestParser.JSON -> "select('/image')"
-                                    ScraperSpecificationRequestParser.TEXT -> ""
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/image')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                 },
                             ),
                             listOf(
                                 ScraperSpecificationReturnFlatStock(
-                                    ScraperSpecificationJexlExpression(
-                                        when (requestParser) {
-                                            ScraperSpecificationRequestParser.HTML ->
-                                                "selectAll('.//td[contains(@class, \\'stocks\\')]/div')"
+                                    listOf(
+                                        ScraperSpecificationJexlExpression(
+                                            when (requestParser) {
+                                                ScraperSpecificationRequestParser.HTML ->
+                                                    "toolkit.selectAll('.//td[contains(@class, \\'stocks\\')]/div')"
 
-                                            ScraperSpecificationRequestParser.JSON -> "selectAll('/stocks')"
-                                            ScraperSpecificationRequestParser.TEXT -> ""
-                                        },
+                                                ScraperSpecificationRequestParser.JSON -> "toolkit.selectAll('/stocks')"
+                                                ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
+                                            },
+                                        ),
                                     ),
-                                    ScraperSpecificationReturnExtractStock(
-                                        ScraperSpecificationJexlExpression(
-                                            when (requestParser) {
-                                                ScraperSpecificationRequestParser.HTML ->
-                                                    "select('.//p[contains(@class, \\'availability\\')]')"
+                                    listOf(
+                                        ScraperSpecificationReturnExtractStock(
+                                            ScraperSpecificationJexlExpression(
+                                                when (requestParser) {
+                                                    ScraperSpecificationRequestParser.HTML ->
+                                                        "toolkit.select('.//p[contains(@class, \\'availability\\')]')"
 
-                                                ScraperSpecificationRequestParser.JSON -> "select('/availability')"
-                                                ScraperSpecificationRequestParser.TEXT -> ""
-                                            },
-                                        ),
-                                        ScraperSpecificationJexlExpression(
-                                            when (requestParser) {
-                                                ScraperSpecificationRequestParser.HTML ->
-                                                    "select('.//p[contains(@class, \\'storage\\')]')"
+                                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/availability')"
+                                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
+                                                },
+                                            ),
+                                            ScraperSpecificationJexlExpression(
+                                                when (requestParser) {
+                                                    ScraperSpecificationRequestParser.HTML ->
+                                                        "toolkit.select('.//p[contains(@class, \\'storage\\')]')"
 
-                                                ScraperSpecificationRequestParser.JSON -> "select('/storage')"
-                                                ScraperSpecificationRequestParser.TEXT -> ""
-                                            },
-                                        ),
-                                        ScraperSpecificationJexlExpression(
-                                            when (requestParser) {
-                                                ScraperSpecificationRequestParser.HTML ->
-                                                    "select('.//p[contains(@class, \\'delivery\\')]')"
+                                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/storage')"
+                                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
+                                                },
+                                            ),
+                                            ScraperSpecificationJexlExpression(
+                                                when (requestParser) {
+                                                    ScraperSpecificationRequestParser.HTML ->
+                                                        "toolkit.select('.//p[contains(@class, \\'delivery\\')]')"
 
-                                                ScraperSpecificationRequestParser.JSON -> "select('/delivery')"
-                                                ScraperSpecificationRequestParser.TEXT -> ""
-                                            },
+                                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/delivery')"
+                                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
+                                                },
+                                            ),
                                         ),
                                     ),
                                 ),
                             ),
                             ScraperSpecificationJexlExpression(
                                 when (requestParser) {
-                                    ScraperSpecificationRequestParser.HTML -> "select('.//td[contains(@class, \\'grip\\')]')"
-                                    ScraperSpecificationRequestParser.JSON -> "select('/grip')"
-                                    ScraperSpecificationRequestParser.TEXT -> ""
+                                    ScraperSpecificationRequestParser.HTML -> "toolkit.select('.//td[contains(@class, \\'grip\\')]')"
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/grip')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                 },
                             ),
                             ScraperSpecificationJexlExpression(
                                 when (requestParser) {
-                                    ScraperSpecificationRequestParser.HTML -> "select('.//td[contains(@class, \\'noise\\')]')"
-                                    ScraperSpecificationRequestParser.JSON -> "select('/noise')"
-                                    ScraperSpecificationRequestParser.TEXT -> ""
+                                    ScraperSpecificationRequestParser.HTML -> "toolkit.select('.//td[contains(@class, \\'noise\\')]')"
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/noise')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                 },
                             ),
                             ScraperSpecificationJexlExpression(
                                 when (requestParser) {
-                                    ScraperSpecificationRequestParser.HTML -> "select('.//td[contains(@class, \\'decibels\\')]')"
-                                    ScraperSpecificationRequestParser.JSON -> "select('/decibels')"
-                                    ScraperSpecificationRequestParser.TEXT -> ""
+                                    ScraperSpecificationRequestParser.HTML -> "toolkit.select('.//td[contains(@class, \\'decibels\\')]')"
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/decibels')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                 },
                             ),
                             ScraperSpecificationJexlExpression(
                                 when (requestParser) {
-                                    ScraperSpecificationRequestParser.HTML -> "select('.//td[contains(@class, \\'consumption\\')]')"
-                                    ScraperSpecificationRequestParser.JSON -> "select('/consumption')"
-                                    ScraperSpecificationRequestParser.TEXT -> ""
+                                    ScraperSpecificationRequestParser.HTML -> "toolkit.select('.//td[contains(@class, \\'consumption\\')]')"
+                                    ScraperSpecificationRequestParser.JSON -> "toolkit.select('/consumption')"
+                                    ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                 },
                             ),
                             listOf(
@@ -248,18 +254,20 @@ object TestingSpecifications {
                                     ScraperSpecificationJexlExpression("'descriptive'"),
                                     ScraperSpecificationJexlExpression(
                                         when (requestParser) {
-                                            ScraperSpecificationRequestParser.HTML -> "select('.//td[contains(@class, \\'extra\\')]')"
-                                            ScraperSpecificationRequestParser.JSON -> "select('/extra')"
-                                            ScraperSpecificationRequestParser.TEXT -> ""
+                                            ScraperSpecificationRequestParser.HTML ->
+                                                "toolkit.select('.//td[contains(@class, \\'extra\\')]')"
+
+                                            ScraperSpecificationRequestParser.JSON -> "toolkit.select('/extra')"
+                                            ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                         },
                                     ),
                                     ScraperSpecificationJexlExpression(
                                         when (requestParser) {
                                             ScraperSpecificationRequestParser.HTML ->
-                                                "selectAll('.//td[contains(@class, \\'extraImages\\')]/a').at(0).attr('href')"
+                                                "toolkit.attr(toolkit.selectAll('.//td[contains(@class, \\'extraImages\\')]/a')[0], 'href')"
 
-                                            ScraperSpecificationRequestParser.JSON -> "selectAll('/extraImages').at(0)"
-                                            ScraperSpecificationRequestParser.TEXT -> ""
+                                            ScraperSpecificationRequestParser.JSON -> "toolkit.selectAll('/extraImages')[0]"
+                                            ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                         },
                                     ),
                                 ),
@@ -268,10 +276,10 @@ object TestingSpecifications {
                                     ScraperSpecificationJexlExpression(
                                         when (requestParser) {
                                             ScraperSpecificationRequestParser.HTML ->
-                                                "selectAll('.//td[contains(@class, \\'extraImages\\')]/a').at(1).attr('href')"
+                                                "toolkit.attr(toolkit.selectAll('.//td[contains(@class, \\'extraImages\\')]/a')[1], 'href')"
 
-                                            ScraperSpecificationRequestParser.JSON -> "selectAll('/extraImages').at(1)"
-                                            ScraperSpecificationRequestParser.TEXT -> ""
+                                            ScraperSpecificationRequestParser.JSON -> "toolkit.selectAll('/extraImages')[1]"
+                                            ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> ""
                                         },
                                     ),
                                 ),

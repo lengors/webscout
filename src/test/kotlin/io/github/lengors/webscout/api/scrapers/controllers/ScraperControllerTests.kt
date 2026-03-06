@@ -374,7 +374,7 @@ class ScraperControllerTests {
                     when (requestParser) {
                         ScraperSpecificationRequestParser.HTML -> ScraperDefinitionPayloadType.DATA
                         ScraperSpecificationRequestParser.JSON -> ScraperDefinitionPayloadType.JSON
-                        ScraperSpecificationRequestParser.TEXT -> null
+                        ScraperSpecificationRequestParser.AUTO, ScraperSpecificationRequestParser.TEXT -> null
                     },
             )
         runBlocking {

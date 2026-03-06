@@ -9,4 +9,4 @@ data class DucklingAmountOfMoneyResponseValue(
     val value: Double,
     @JsonProperty("unit")
     val unit: String,
-) : DucklingResponseValue
+) : DucklingAmountOfMoneyLikeResponseValue

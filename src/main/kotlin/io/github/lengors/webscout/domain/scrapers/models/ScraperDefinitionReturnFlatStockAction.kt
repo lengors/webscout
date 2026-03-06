@@ -7,14 +7,14 @@ import org.apache.commons.jexl3.JexlExpression
 
 @ConsistentCopyVisibility
 data class ScraperDefinitionReturnFlatStockAction private constructor(
-    val flattens: JexlExpression,
-    val extracts: ScraperDefinitionReturnExtractStockAction,
+    val flattens: List<JexlExpression>,
+    val extracts: ScraperDefinitionReturnStock,
 ) : ScraperDefinitionReturnStockAction {
     constructor(
         specification: ScraperSpecificationReturnFlatStock,
         jexlEngine: JexlEngine,
     ) : this(
-        jexlEngine.createExpression(specification.flattens),
-        ScraperDefinitionReturnExtractStockAction(specification.extracts, jexlEngine),
+        specification.flattens.map(jexlEngine::createExpression),
+        ScraperDefinitionReturnStock(specification.extracts, jexlEngine),
     )
 }

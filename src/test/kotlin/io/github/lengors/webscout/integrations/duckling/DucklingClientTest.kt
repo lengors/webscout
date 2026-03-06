@@ -9,6 +9,7 @@ import io.github.lengors.webscout.integrations.duckling.models.DucklingDateTimeR
 import io.github.lengors.webscout.integrations.duckling.models.DucklingGrain
 import io.github.lengors.webscout.testing.duckling.configurations.DucklingTestContainerConfiguration
 import io.github.lengors.webscout.testing.postgres.configurations.PostgresTestContainerConfiguration
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,53 +32,62 @@ class DucklingClientTest {
 
     @Test
     fun `should correctly parse amount of money`(): Unit =
-        ducklingClient
-            .parse(DucklingAmountOfMoneyRequest("10£", locale, zoneId))
-            ?.value
-            .let {
-                Assertions.assertNotNull(it)
-                it?.let { Assertions.assertEquals(DucklingAmountOfMoneyResponseValue(10.0, "£"), it) }
-            }
+        runBlocking {
+            ducklingClient
+                .parse(DucklingAmountOfMoneyRequest("10£", locale, zoneId))
+                .firstOrNull()
+                ?.value
+                .let {
+                    Assertions.assertNotNull(it)
+                    it?.let { Assertions.assertEquals(DucklingAmountOfMoneyResponseValue(10.0, "£"), it) }
+                }
+        }
 
     @Test
     fun `should correctly parse date time instant`(): Unit =
-        ducklingClient
-            .parse(DucklingDateTimeRequest("January 1st, 2025", locale, zoneId))
-            ?.value
-            .let { actual ->
-                Assertions.assertNotNull(actual)
-                actual?.let {
-                    Assertions.assertEquals(
-                        DucklingDateTimeInstantResponseValue(
-                            ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.of("Z")),
-                            DucklingGrain.DAY,
-                        ),
-                        it,
-                    )
-                }
-            }
-
-    @Test
-    fun `should correctly parse date range instant`(): Unit =
-        ducklingClient
-            .parse(DucklingDateTimeRequest("Between January 1st, 2025 and January 2nd, 2025", locale, zoneId))
-            ?.value
-            .let { actual ->
-                Assertions.assertNotNull(actual)
-                actual?.let {
-                    Assertions.assertEquals(
-                        DucklingDateTimeRangeResponseValue(
+        runBlocking {
+            ducklingClient
+                .parse(DucklingDateTimeRequest("January 1st, 2025", locale, zoneId))
+                .firstOrNull()
+                ?.value
+                .let { actual ->
+                    Assertions.assertNotNull(actual)
+                    actual?.let {
+                        Assertions.assertEquals(
                             DucklingDateTimeInstantResponseValue(
                                 ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.of("Z")),
                                 DucklingGrain.DAY,
                             ),
-                            DucklingDateTimeInstantResponseValue(
-                                ZonedDateTime.of(2025, 1, 3, 0, 0, 0, 0, ZoneId.of("Z")),
-                                DucklingGrain.DAY,
-                            ),
-                        ),
-                        it,
-                    )
+                            it,
+                        )
+                    }
                 }
-            }
+        }
+
+    @Test
+    fun `should correctly parse date range instant`(): Unit =
+        runBlocking {
+            ducklingClient
+                .parse(DucklingDateTimeRequest("Between January 1st, 2025 and January 2nd, 2025", locale, zoneId))
+                .firstOrNull()
+                ?.value
+                .let { actual ->
+                    Assertions.assertNotNull(actual)
+                    actual?.let {
+                        Assertions.assertEquals(
+                            DucklingDateTimeRangeResponseValue(
+                                DucklingDateTimeInstantResponseValue(
+                                    ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.of("Z")),
+                                    DucklingGrain.DAY,
+                                ),
+                                DucklingDateTimeInstantResponseValue(
+                                    ZonedDateTime.of(2025, 1, 3, 0, 0, 0, 0, ZoneId.of("Z")),
+                                    DucklingGrain.DAY,
+                                ),
+                            ),
+                            it,
+                        )
+                    }
+                }
+        }
 }

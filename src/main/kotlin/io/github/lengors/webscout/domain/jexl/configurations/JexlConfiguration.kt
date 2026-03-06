@@ -1,5 +1,6 @@
 package io.github.lengors.webscout.domain.jexl.configurations
 
+import io.github.lengors.webscout.domain.jexl.services.JexlNamespace
 import io.github.lengors.webscout.domain.jexl.services.JexlStrategy
 import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.JexlEngine
@@ -14,12 +15,15 @@ class JexlConfiguration {
     fun builder(
         features: JexlFeatures,
         permissions: JexlPermissions,
+        namespaces: Map<String, JexlNamespace>,
     ): JexlBuilder =
         JexlBuilder()
             .features(features)
+            .namespaces(namespaces)
             .permissions(permissions)
             .strict(true)
             .silent(false)
+            .safe(false)
             .strategy(JexlStrategy)
 
     @Bean
@@ -31,7 +35,6 @@ class JexlConfiguration {
             .createDefault()
             .annotation(false)
             .importPragma(false)
-            .localVar(false)
             .loops(false)
             .namespacePragma(false)
             .newInstance(false)
@@ -43,8 +46,14 @@ class JexlConfiguration {
     @Bean
     fun permissions(): JexlPermissions =
         JexlPermissions.RESTRICTED
+            .compose("java.time.*")
+            .compose("javax.money.*")
+            .compose("org.springframework.util.*")
             .compose("org.springframework.web.util.*")
+            .compose("io.github.lengors.webscout.domain.functional.async.*")
+            .compose("io.github.lengors.webscout.domain.jexl.namespaces.*")
             .compose("io.github.lengors.webscout.domain.scrapers.contexts.models.*")
             .compose("io.github.lengors.webscout.domain.jexl.models.*")
             .compose("org.jsoup.nodes.*")
+            .compose("com.fasterxml.jackson.databind.*")
 }

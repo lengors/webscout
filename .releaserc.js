@@ -10,8 +10,8 @@ module.exports = {
         {name: "beta", prerelease: true},
         {name: "alpha", prerelease: true},
         {name: "dev", prerelease: true},
-        {name: "feat/**", prerelease: "preview.${name.replace(/^feat\\//, '').replace(/\\//g, '-')}"},
-        {name: "bug/**", prerelease: "preview.${name.replace(/^bug\\//, '').replace(/\\//g, '-')}"},
+        {name: "feat/**", channel: "preview", prerelease: "preview-${name.replace(/^feat\\//, '').replace(/\\//g, '-')}"},
+        {name: "bug/**", channel: "preview", prerelease: "preview-${name.replace(/^bug\\//, '').replace(/\\//g, '-')}"},
     ],
     plugins: isPreview
         ? [

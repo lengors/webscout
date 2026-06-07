@@ -5,6 +5,7 @@ const isPreview =
     branch.startsWith("bug/");
 
 module.exports = {
+    tagFormat: "${version}",
     branches: [
         "main",
         {name: "beta", prerelease: true},

@@ -1,3 +1,34 @@
+# v1.0.0-alpha.1 (2026-06-07)
+
+## ✨ New Features
+- [`1eba963c4`](https://github.com/lengors/webscout/commit/1eba963c4)  Add specifications CRUD operations 
+- [`f899fff46`](https://github.com/lengors/webscout/commit/f899fff46)  Add specifications CRUD operations 
+- [`cae77e04c`](https://github.com/lengors/webscout/commit/cae77e04c)  Add scraper service 
+- [`8532a9809`](https://github.com/lengors/webscout/commit/8532a9809)  Add observability support via OpenTelemetry 
+- [`0038341ab`](https://github.com/lengors/webscout/commit/0038341ab)  Add OpenAPI using Springdoc 
+- [`1a67161e3`](https://github.com/lengors/webscout/commit/1a67161e3)  Add support for exposing metrics 
+- [`9c785e947`](https://github.com/lengors/webscout/commit/9c785e947)  Add virtual threads to scrapping process 
+- [`160afc766`](https://github.com/lengors/webscout/commit/160afc766)  Add support for deleting and finding multiple specifications through query parameters 
+- [`2b5d0307e`](https://github.com/lengors/webscout/commit/2b5d0307e)  Add validation for the specification name 
+- [`30b33d0a4`](https://github.com/lengors/webscout/commit/30b33d0a4)  Add support for multiple response dimensions per duckling request 
+- [`3da1886a3`](https://github.com/lengors/webscout/commit/3da1886a3)  Add retry logic for duckling 
+
+## 🐛 Bug Fixes
+- [`b3557a4af`](https://github.com/lengors/webscout/commit/b3557a4af)  Use plural form for query parameters taking multiple values 
+- [`4883c8383`](https://github.com/lengors/webscout/commit/4883c8383)  Bump protoscout version 
+- [`a89f70fea`](https://github.com/lengors/webscout/commit/a89f70fea) ⬆️ Bump protoscout reference 
+- [`bcd257d30`](https://github.com/lengors/webscout/commit/bcd257d30) ⬆️ Bump protoscout reference 
+- [`1de1fa2d0`](https://github.com/lengors/webscout/commit/1de1fa2d0)  Bump protoscout reference 
+- [`5e9974cfe`](https://github.com/lengors/webscout/commit/5e9974cfe)  Bump protoscout reference 
+- [`7e47ef956`](https://github.com/lengors/webscout/commit/7e47ef956)  Fix tracing on scraping 
+- [`a87301ab5`](https://github.com/lengors/webscout/commit/a87301ab5)  Fix fields generation on scraping request 
+- [`20b3ab046`](https://github.com/lengors/webscout/commit/20b3ab046)  Fix missing Jexl permissions for namespaces 
+- [`1d25473cd`](https://github.com/lengors/webscout/commit/1d25473cd)  Fix DB connection resetting 
+- [`0b62697e3`](https://github.com/lengors/webscout/commit/0b62697e3)  Remove connection pools from web clients 
+
+## 🔒 Security Issues
+- [`1d697dc02`](https://github.com/lengors/webscout/commit/1d697dc02) ️ Add dependency metadata verification
+
 # v1.0.0-dev.1 (2026-06-07)
 
 ## ✨ New Features

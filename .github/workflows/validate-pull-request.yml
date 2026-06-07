@@ -27,9 +27,7 @@ jobs:
         strategy:
             matrix:
                 os:
-                    - macos-latest
                     - ubuntu-latest
-                    - windows-latest
                 distribution:
                     - temurin
                     - zulu

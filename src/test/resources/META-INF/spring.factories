@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.service.connection.ConnectionDetailsFactory=io.github.lengors.webscout.testing.duckling.containers.DucklingContainerConnectionDetailsFactory

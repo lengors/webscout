@@ -7,11 +7,13 @@ on:
             - main
             - beta
             - alpha
+            - dev
 jobs:
     publish-new-version:
         name: Publish new version
         runs-on: ubuntu-latest
         environment: publisher
+        if: "${{ github.event_name != 'workflow_dispatch' || startsWith(github.ref_name, 'feat/') || startsWith(github.ref_name, 'bug/') }}"
         steps:
             - name: Create GitHub app token
               uses: actions/create-github-app-token@v1

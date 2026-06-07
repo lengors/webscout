@@ -44,7 +44,7 @@ class SpringHttpExchanger(
             .clientConnector(
                 ReactorClientHttpConnector(
                     HttpClient
-                        .create()
+                        .newConnection()
                         .followRedirect { _, response ->
                             response
                                 .status()

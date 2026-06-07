@@ -21,6 +21,12 @@ spring:
     url: r2dbc:${DATABASE_URL:postgresql://localhost:5432/webscout}
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:}
+    pool:
+      validation-query: SELECT 1
+      max-idle-time: 10m
+      max-life-time: 1h
+    properties:
+      tcpKeepAlive: true
   cache:
     caffeine:
       spec: expireAfterAccess=1h

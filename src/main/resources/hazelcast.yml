@@ -1,0 +1,7 @@
+---
+hazelcast:
+    network:
+        join:
+            multicast:
+                enabled: true
+                multicast-port: 37800
